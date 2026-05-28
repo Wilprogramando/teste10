@@ -9,7 +9,6 @@ import {
   HeartPulse,
   Ruler,
   Save,
-  Scale,
   Target,
   User,
 } from 'lucide-react';
@@ -20,7 +19,6 @@ type ProfileForm = {
   full_name: string;
   age: string;
   height_cm: string;
-  current_weight_kg: string;
   training_frequency: string;
   dietary_restrictions: string;
   health_notes: string;
@@ -32,7 +30,6 @@ const initialForm: ProfileForm = {
   full_name: '',
   age: '',
   height_cm: '',
-  current_weight_kg: '',
   training_frequency: '',
   dietary_restrictions: '',
   health_notes: '',
@@ -74,6 +71,20 @@ function Field({
   );
 }
 
+function toNumberOrNull(value: string) {
+  if (!value || value.trim() === '') {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export default function PerfilPage() {
   const supabase = createClient();
 
@@ -106,10 +117,6 @@ export default function PerfilPage() {
           full_name: data.full_name ?? data.name ?? '',
           age: data.age ? String(data.age) : '',
           height_cm: data.height_cm ? String(data.height_cm) : '',
-          current_weight_kg:
-            data.current_weight_kg ?? data.current_weight
-              ? String(data.current_weight_kg ?? data.current_weight)
-              : '',
           training_frequency: data.training_frequency
             ? String(data.training_frequency)
             : '',
@@ -150,10 +157,9 @@ export default function PerfilPage() {
 
     const payload = {
       full_name: form.full_name.trim(),
-      age: Number(form.age),
-      height_cm: Number(form.height_cm),
-      current_weight_kg: Number(form.current_weight_kg),
-      training_frequency: Number(form.training_frequency),
+      age: toNumberOrNull(form.age),
+      height_cm: toNumberOrNull(form.height_cm),
+      training_frequency: toNumberOrNull(form.training_frequency),
       dietary_restrictions: form.dietary_restrictions.trim() || null,
       health_notes: form.health_notes.trim() || null,
       goal: form.goal,
@@ -213,10 +219,12 @@ export default function PerfilPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
               <Target size={22} />
             </div>
+
             <p className="mt-4 text-xs font-black uppercase tracking-wide text-slate-500">
               Objetivo
             </p>
-            <p className="mt-1 text-lg font-black capitalize text-slate-950">
+
+            <p className="mt-1 text-lg font-black text-slate-950">
               {goals.find((goal) => goal.value === form.goal)?.label ??
                 'Emagrecer'}
             </p>
@@ -226,9 +234,11 @@ export default function PerfilPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
               <Dumbbell size={22} />
             </div>
+
             <p className="mt-4 text-xs font-black uppercase tracking-wide text-slate-500">
               Nível
             </p>
+
             <p className="mt-1 text-lg font-black text-slate-950">
               {levels.find((level) => level.value === form.level)?.label ??
                 'Iniciante'}
@@ -239,9 +249,11 @@ export default function PerfilPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
               <Activity size={22} />
             </div>
+
             <p className="mt-4 text-xs font-black uppercase tracking-wide text-slate-500">
               Frequência
             </p>
+
             <p className="mt-1 text-lg font-black text-slate-950">
               {form.training_frequency
                 ? `${form.training_frequency}x semana`
@@ -255,8 +267,9 @@ export default function PerfilPage() {
             <h2 className="text-2xl font-black text-slate-950">
               Informações pessoais
             </h2>
+
             <p className="mt-2 text-sm text-slate-500">
-              Mantenha os dados atualizados para acompanhar melhor sua evolução.
+              O peso atual deve ser atualizado na aba Progresso.
             </p>
           </div>
 
@@ -294,21 +307,6 @@ export default function PerfilPage() {
                   }
                 />
                 <span className="text-sm font-bold text-slate-400">cm</span>
-              </div>
-            </Field>
-
-            <Field label="Peso atual" icon={Scale}>
-              <div className="flex items-center gap-2">
-                <input
-                  className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
-                  placeholder="Peso atual"
-                  type="number"
-                  value={form.current_weight_kg}
-                  onChange={(event) =>
-                    updateField('current_weight_kg', event.target.value)
-                  }
-                />
-                <span className="text-sm font-bold text-slate-400">kg</span>
               </div>
             </Field>
 
