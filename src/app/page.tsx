@@ -4,7 +4,8 @@ import { Dumbbell, Flame, Target, TrendingUp } from 'lucide-react';
 const benefits = [
   {
     title: 'Onboarding personalizado',
-    description: 'Comece informando seu objetivo, nível atual e rotina disponível.',
+    description:
+      'Comece informando seu objetivo, nível atual e rotina disponível.',
     icon: Target,
   },
   {
@@ -27,20 +28,6 @@ const benefits = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50">
-      <header className="border-b bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-xl font-black text-emerald-700">
-            Jornada Seu Ademir
-          </Link>
-
-          <nav className="flex items-center gap-6 text-sm font-semibold text-slate-700">
-            <Link href="/auth/login" className="text-emerald-700">
-              Entrar
-            </Link>
-          </nav>
-        </div>
-      </header>
-
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
         <div>
           <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700">
