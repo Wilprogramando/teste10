@@ -493,13 +493,11 @@ function WorkoutDayCard({
 export function WorkoutPlanView({
   plans,
   exercises,
-  userLevel,
-  trainingFrequency,
 }: {
   plans: WorkoutPlanItem[];
   exercises: WorkoutExerciseItem[];
-  userLevel: string;
-  trainingFrequency: string;
+  userLevel?: string;
+  trainingFrequency?: string;
 }) {
   const workoutPlans = plans.length > 0 ? plans : fallbackPlans;
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -531,27 +529,11 @@ export function WorkoutPlanView({
           cada exercício com séries, repetições, descanso e cuidados.
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
-              Duração
-            </p>
-            <p className="mt-2 text-3xl font-black">4 semanas</p>
-          </div>
-
-          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
-              Perfil
-            </p>
-            <p className="mt-2 text-3xl font-black">{userLevel}</p>
-          </div>
-
-          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
-              Frequência
-            </p>
-            <p className="mt-2 text-3xl font-black">{trainingFrequency}</p>
-          </div>
+        <div className="mt-6 rounded-3xl bg-white/15 p-4 backdrop-blur">
+          <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
+            Duração
+          </p>
+          <p className="mt-2 text-3xl font-black">4 semanas</p>
         </div>
       </section>
 
