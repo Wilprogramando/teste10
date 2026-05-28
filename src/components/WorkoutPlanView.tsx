@@ -61,8 +61,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino A',
     focus: 'Peito, ombros e tríceps',
     intensity: 'Moderada',
-    notes:
-      'Aumente levemente a carga se a execução estiver segura.',
+    notes: 'Aumente levemente a carga se a execução estiver segura.',
   },
   {
     id: 'fallback-5',
@@ -72,8 +71,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas e bíceps',
     intensity: 'Moderada',
-    notes:
-      'Mantenha descanso controlado e boa contração muscular.',
+    notes: 'Mantenha descanso controlado e boa contração muscular.',
   },
   {
     id: 'fallback-6',
@@ -83,8 +81,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino C',
     focus: 'Pernas e abdômen',
     intensity: 'Moderada',
-    notes:
-      'Busque constância. Não sacrifique postura por carga.',
+    notes: 'Busque constância. Não sacrifique postura por carga.',
   },
   {
     id: 'fallback-7',
@@ -94,8 +91,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino A',
     focus: 'Peito, ombros e tríceps',
     intensity: 'Moderada a alta',
-    notes:
-      'Semana de progressão. Aumente carga ou repetições com segurança.',
+    notes: 'Semana de progressão. Aumente carga ou repetições com segurança.',
   },
   {
     id: 'fallback-8',
@@ -105,8 +101,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas e bíceps',
     intensity: 'Moderada a alta',
-    notes:
-      'Controle a fase de descida dos movimentos e mantenha estabilidade.',
+    notes: 'Controle a fase de descida dos movimentos e mantenha estabilidade.',
   },
   {
     id: 'fallback-9',
@@ -116,8 +111,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino C',
     focus: 'Pernas e abdômen',
     intensity: 'Moderada a alta',
-    notes:
-      'Atenção a joelhos, lombar e respiração durante os exercícios.',
+    notes: 'Atenção a joelhos, lombar e respiração durante os exercícios.',
   },
   {
     id: 'fallback-10',
@@ -127,8 +121,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino A',
     focus: 'Superiores',
     intensity: 'Alta controlada',
-    notes:
-      'Última semana. Treine forte, mas com técnica limpa.',
+    notes: 'Última semana. Treine forte, mas com técnica limpa.',
   },
   {
     id: 'fallback-11',
@@ -138,8 +131,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas, bíceps e core',
     intensity: 'Alta controlada',
-    notes:
-      'Mantenha concentração e registre sua evolução.',
+    notes: 'Mantenha concentração e registre sua evolução.',
   },
   {
     id: 'fallback-12',
@@ -149,8 +141,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino C',
     focus: 'Pernas completas',
     intensity: 'Alta controlada',
-    notes:
-      'Finalize o ciclo com disciplina, controle e boa recuperação.',
+    notes: 'Finalize o ciclo com disciplina, controle e boa recuperação.',
   },
 ];
 
@@ -177,8 +168,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 60,
     instructions:
       'Empurre os halteres acima da cabeça com o tronco firme e abdômen contraído.',
-    precautions:
-      'Não arqueie a lombar. Reduza a carga se perder controle.',
+    precautions: 'Não arqueie a lombar. Reduza a carga se perder controle.',
     image_url: null,
   },
   {
@@ -190,8 +180,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 45,
     instructions:
       'Mantenha os cotovelos próximos ao corpo e estenda os braços até contrair o tríceps.',
-    precautions:
-      'Evite balançar o tronco durante o movimento.',
+    precautions: 'Evite balançar o tronco durante o movimento.',
     image_url: null,
   },
   {
@@ -203,8 +192,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 60,
     instructions:
       'Puxe a barra em direção ao peito, mantendo o tronco firme e os ombros para baixo.',
-    precautions:
-      'Não puxe atrás da nuca e evite impulso excessivo.',
+    precautions: 'Não puxe atrás da nuca e evite impulso excessivo.',
     image_url: null,
   },
   {
@@ -216,8 +204,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 60,
     instructions:
       'Puxe o pegador em direção ao abdômen, aproximando as escápulas no final.',
-    precautions:
-      'Não curve a lombar e mantenha controle na volta.',
+    precautions: 'Não curve a lombar e mantenha controle na volta.',
     image_url: null,
   },
   {
@@ -229,8 +216,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 45,
     instructions:
       'Flexione os cotovelos sem balançar o corpo e desça a barra com controle.',
-    precautions:
-      'Evite jogar o tronco para trás para levantar a carga.',
+    precautions: 'Evite jogar o tronco para trás para levantar a carga.',
     image_url: null,
   },
   {
@@ -242,8 +228,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 75,
     instructions:
       'Desça mantendo o peito aberto, joelhos alinhados e pés firmes no chão.',
-    precautions:
-      'Não deixe os joelhos colapsarem para dentro.',
+    precautions: 'Não deixe os joelhos colapsarem para dentro.',
     image_url: null,
   },
   {
@@ -255,8 +240,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 75,
     instructions:
       'Empurre a plataforma com controle e desça até uma amplitude confortável.',
-    precautions:
-      'Não trave os joelhos no topo do movimento.',
+    precautions: 'Não trave os joelhos no topo do movimento.',
     image_url: null,
   },
   {
@@ -268,8 +252,7 @@ const fallbackExercises: WorkoutExerciseItem[] = [
     rest_seconds: 45,
     instructions:
       'Mantenha corpo alinhado, abdômen contraído e respiração controlada.',
-    precautions:
-      'Não deixe o quadril cair e evite prender a respiração.',
+    precautions: 'Não deixe o quadril cair e evite prender a respiração.',
     image_url: null,
   },
 ];
@@ -284,22 +267,24 @@ function getExercisesForPlan(
 
   if (directExercises.length > 0) return directExercises;
 
-  const fallbackByFocus = fallbackExercises.filter(
+  const fallbackByPlan = fallbackExercises.filter(
     (exercise) => exercise.workout_plan_id === plan.id
   );
 
-  if (fallbackByFocus.length > 0) return fallbackByFocus;
+  if (fallbackByPlan.length > 0) return fallbackByPlan;
 
-  if (plan.focus.toLowerCase().includes('perna')) {
+  const focus = plan.focus.toLowerCase();
+
+  if (focus.includes('perna')) {
     return fallbackExercises.filter(
       (exercise) => exercise.workout_plan_id === 'fallback-3'
     );
   }
 
   if (
-    plan.focus.toLowerCase().includes('costas') ||
-    plan.focus.toLowerCase().includes('bíceps') ||
-    plan.focus.toLowerCase().includes('biceps')
+    focus.includes('costas') ||
+    focus.includes('bíceps') ||
+    focus.includes('biceps')
   ) {
     return fallbackExercises.filter(
       (exercise) => exercise.workout_plan_id === 'fallback-2'
@@ -503,7 +488,6 @@ function WorkoutDayCard({
 export function WorkoutPlanView({
   plans,
   exercises,
-  hasError,
 }: {
   plans: WorkoutPlanItem[];
   exercises: WorkoutExerciseItem[];
@@ -562,13 +546,6 @@ export function WorkoutPlanView({
           </div>
         </div>
       </section>
-
-      {hasError && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-          Não foi possível carregar os treinos do banco. Exibindo um plano
-          padrão para consulta.
-        </div>
-      )}
 
       <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
