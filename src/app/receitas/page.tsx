@@ -8,9 +8,9 @@ type Recipe = {
   category: string;
   ingredients: string | null;
   preparation: string | null;
-  prep_time: string | null;
+  prep_time_minutes: number | null;
   calories: number | null;
-  protein: number | null;
+  protein_g: number | null;
   healthy_note: string | null;
   image_url: string | null;
 };
@@ -23,7 +23,7 @@ export default async function ReceitasPage() {
     .select('*')
     .order('category', { ascending: true });
 
-  const recipes: Recipe[] = data ?? [];
+  const recipes: Recipe[] = (data ?? []) as Recipe[];
 
   return (
     <AppShell>
