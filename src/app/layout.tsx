@@ -1,5 +1,25 @@
-import './globals.css';
 import type { Metadata } from 'next';
-import { Header } from '@/components/Header';
-export const metadata: Metadata = { title:'Jornada Seu Ademir', description:'SaaS motivacional de vida fitness com Supabase' };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="pt-BR"><body><Header/>{children}</body></html>}
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Jornada Seu Ademir',
+  description:
+    'Sistema de vida saudável, exercícios, alimentação e acompanhamento de progresso.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="pt-BR">
+      <body>{children}</body>
+    </html>
+  );
+}
