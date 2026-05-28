@@ -521,20 +521,13 @@ export function WorkoutPlanView({
         </span>
 
         <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-          4 semanas para criar força, disciplina e consistência.
+          Treinos para criar força, disciplina e consistência.
         </h1>
 
         <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
           Escolha a semana, siga os treinos indicados e acompanhe a execução de
           cada exercício com séries, repetições, descanso e cuidados.
         </p>
-
-        <div className="mt-6 rounded-3xl bg-white/15 p-4 backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
-            Duração
-          </p>
-          <p className="mt-2 text-3xl font-black">4 semanas</p>
-        </div>
       </section>
 
       <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
