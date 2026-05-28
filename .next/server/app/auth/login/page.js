@@ -1,0 +1,13 @@
+var R=require("../../../chunks/ssr/[turbopack]_runtime.js")("server/app/auth/login/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0ptazg3._.js")
+R.c("server/chunks/ssr/063v_next_dist_esm_build_templates_app-page_0a2fwuh.js")
+R.c("server/chunks/ssr/[root-of-the-server]__05mpa1c._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0aqjf6r._.js")
+R.c("server/chunks/ssr/Downloads_fit-transformacao-pro-corrigido_0701csy._.js")
+R.c("server/chunks/ssr/063v_next_dist_client_components_0ovy.lg._.js")
+R.c("server/chunks/ssr/063v_next_dist_client_components_builtin_forbidden_12qz8w7.js")
+R.c("server/chunks/ssr/063v_next_dist_client_components_builtin_unauthorized_0dww_5c.js")
+R.c("server/chunks/ssr/063v_next_dist_client_components_builtin_global-error_0ql._s9.js")
+R.c("server/chunks/ssr/0tth_formacao-pro-corrigido__next-internal_server_app_auth_login_page_actions_0gp4q57.js")
+R.m(68075)
+module.exports=R.m(68075).exports

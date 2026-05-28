@@ -1,0 +1,1 @@
+export function WorkoutCard({title,children}:{title:string;children:React.ReactNode}){return <div className="card"><h3 className="text-xl font-black">{title}</h3><div className="mt-3 text-sm text-slate-700">{children}</div></div>}

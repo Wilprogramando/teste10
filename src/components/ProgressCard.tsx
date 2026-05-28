@@ -1,0 +1,1 @@
+export function ProgressCard({percent,title}:{percent:number;title:string}){return <div className="card"><div className="flex items-center justify-between"><b>{title}</b><span className="badge">{percent}%</span></div><div className="mt-4 h-3 rounded-full bg-slate-100"><div className="h-3 rounded-full bg-brand-600" style={{width:`${percent}%`}} /></div></div>}

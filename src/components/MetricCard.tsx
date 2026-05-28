@@ -1,0 +1,1 @@
+export function MetricCard({label,value,sub}:{label:string;value:string|number;sub?:string}){return <div className="card"><p className="text-sm text-slate-500">{label}</p><strong className="mt-2 block text-3xl">{value}</strong>{sub&&<p className="mt-1 text-sm text-slate-500">{sub}</p>}</div>}

@@ -1,0 +1,52 @@
+insert into progress_stages(id,name,description,motivational_message,unlock_days,required_completed_days,evolution_percent) values
+(1,'Começo da transformação','Primeiros passos e organização da rotina.','Você começou. Isso já te coloca à frente.',0,0,10),(2,'Criando consistência','Foco em repetir o básico bem feito.','Consistência é sua maior vantagem.',3,2,20),(3,'Primeira semana vencida','Você prova que consegue manter o plano.','Uma semana muda sua confiança.',7,5,30),(4,'Mais energia','Seu corpo começa a responder melhor.','Energia vem do compromisso.',10,8,40),(5,'Corpo em adaptação','Treinos e refeições ficam mais naturais.','A adaptação é sinal de evolução.',13,11,50),(6,'Disciplina em construção','Você age mesmo sem motivação perfeita.','Disciplina constrói liberdade.',16,14,60),(7,'Evolução visível','Pequenas mudanças começam a aparecer.','O invisível vira visível.',19,17,70),(8,'Mentalidade forte','Sua identidade saudável se fortalece.','Você não está tentando, está se tornando.',22,20,80),(9,'Reta final','Momento de manter foco e cuidado.','A reta final exige presença.',25,23,90),(10,'Nova versão','Conclusão do primeiro ciclo de transformação.','Você construiu uma nova base.',28,26,100);
+insert into recipes(name,category,ingredients,preparation,prep_time_minutes,calories,protein_g,healthy_note) values
+('Omelete de aveia','café da manhã',array['2 ovos','2 colheres de aveia','tomate','orégano'],'Misture tudo e doure em frigideira antiaderente.',10,280,18,'Boa combinação de proteína e carboidrato.'),
+('Iogurte com fruta e chia','café da manhã',array['iogurte natural','banana','chia','canela'],'Monte em camadas e sirva gelado.',5,230,12,'Ajuda na saciedade.'),
+('Tapioca com frango','café da manhã',array['goma de tapioca','frango desfiado','queijo branco'],'Prepare a tapioca e recheie.',10,310,24,'Opção prática para manhãs corridas.'),
+('Vitamina proteica','café da manhã',array['leite','banana','aveia','pasta de amendoim'],'Bata tudo no liquidificador.',5,350,16,'Use sem açúcar adicionado.'),
+('Panqueca de banana','café da manhã',array['banana','ovo','aveia'],'Amasse, misture e doure pequenas porções.',10,260,13,'Mata vontade de doce com bons ingredientes.'),
+('Frango grelhado com arroz e feijão','almoço',array['frango','arroz','feijão','salada'],'Grelhe o frango e sirva com acompanhamentos.',25,520,38,'Clássico acessível e equilibrado.'),
+('Carne moída com legumes','almoço',array['patinho moído','abobrinha','cenoura','arroz integral'],'Refogue a carne e legumes.',25,480,35,'Rico em proteína e micronutrientes.'),
+('Tilápia com batata doce','almoço',array['tilápia','batata doce','brócolis'],'Asse ou grelhe a tilápia e cozinhe os acompanhamentos.',30,430,34,'Leve e nutritivo.'),
+('Salada completa com ovos','almoço',array['folhas','2 ovos','grão de bico','tomate'],'Monte tudo e tempere com limão.',15,390,22,'Boa para dias quentes.'),
+('Macarrão integral com atum','almoço',array['macarrão integral','atum','molho de tomate','milho'],'Cozinhe e misture os ingredientes.',20,510,32,'Prático e rico em proteína.'),
+('Wrap integral de frango','lanche',array['wrap integral','frango','alface','cenoura'],'Recheie e enrole.',10,320,25,'Ótimo lanche pós-treino.'),
+('Maçã com pasta de amendoim','lanche',array['maçã','pasta de amendoim'],'Corte a maçã e sirva com pasta.',5,210,5,'Controle a porção da pasta.'),
+('Sanduíche de queijo branco','lanche',array['pão integral','queijo branco','tomate'],'Monte e aqueça se desejar.',8,280,14,'Simples e saciante.'),
+('Mix de castanhas e fruta','lanche',array['castanhas','fruta'],'Sirva porção pequena.',3,240,6,'Gorduras boas com moderação.'),
+('Cottage com cenoura','lanche',array['cottage','cenoura','torrada integral'],'Sirva como patê.',5,190,15,'Boa proteína para lanches.'),
+('Sopa de legumes com frango','jantar',array['frango','abóbora','cenoura','chuchu'],'Cozinhe tudo e desfie o frango.',35,330,28,'Leve e reconfortante.'),
+('Omelete verde','jantar',array['ovos','espinafre','cebola'],'Refogue e acrescente ovos batidos.',12,250,18,'Jantar rápido.'),
+('Bowl de quinoa','jantar',array['quinoa','frango','legumes','azeite'],'Monte em bowl.',25,430,30,'Boa variedade nutricional.'),
+('Crepioca recheada','jantar',array['ovo','tapioca','frango','ricota'],'Misture ovo e tapioca, recheie.',12,340,26,'Prática e rica em proteína.'),
+('Salada morna de batata e atum','jantar',array['batata','atum','folhas','ervas'],'Cozinhe batata e misture.',20,360,25,'Equilibrada e simples.'),
+('Banana com café','pré-treino',array['banana','café sem açúcar'],'Consuma 30-60 min antes do treino.',2,100,1,'Energia rápida.'),
+('Pão integral com ovo','pré-treino',array['pão integral','ovo'],'Prepare ovo mexido e monte.',8,240,13,'Combina energia e proteína.'),
+('Aveia com mel','pré-treino',array['aveia','mel','água ou leite'],'Misture e aqueça.',5,220,7,'Use mel com moderação.'),
+('Batata doce com frango','pré-treino',array['batata doce','frango'],'Sirva porção pequena.',15,300,24,'Boa para treinos mais intensos.'),
+('Iogurte com granola','pré-treino',array['iogurte','granola sem açúcar'],'Misture e sirva.',3,260,12,'Verifique açúcar da granola.'),
+('Arroz, lentilha e ovos','almoço',array['arroz','lentilha','ovos','salada'],'Cozinhe e monte prato.',25,460,24,'Alternativa econômica.'),
+('Frango xadrez saudável','almoço',array['frango','pimentão','cebola','shoyu light'],'Refogue rapidamente.',20,420,33,'Use pouco shoyu.'),
+('Hambúrguer caseiro de patinho','jantar',array['patinho','salada','pão integral'],'Modele e grelhe.',20,430,32,'Evita ultraprocessados.'),
+('Smoothie de morango','lanche',array['morango','iogurte','aveia'],'Bata tudo.',5,220,11,'Refrescante e prático.'),
+('Cuscuz com ovos','café da manhã',array['cuscuz','ovos','tomate'],'Hidrate o cuscuz e sirva com ovos.',12,330,16,'Excelente opção brasileira.'),
+('Abobrinha recheada','jantar',array['abobrinha','carne moída','molho de tomate'],'Recheie e asse.',35,360,30,'Baixa caloria e alta saciedade.'),
+('Salada de grão de bico','almoço',array['grão de bico','pepino','tomate','frango'],'Misture tudo e tempere.',15,410,27,'Rica em fibras.');
+insert into meal_plans(day_number,breakfast,morning_snack,lunch,afternoon_snack,dinner,supper,notes) values
+(1,'Omelete de aveia','Maçã','Frango, arroz, feijão e salada','Iogurte com chia','Sopa de legumes com frango','Chá sem açúcar','Comece sem radicalismo.'),(2,'Cuscuz com ovos','Banana','Tilápia com batata doce','Sanduíche integral','Crepioca de frango','Iogurte','Beba água ao longo do dia.'),(3,'Iogurte com fruta','Castanhas','Carne moída com legumes','Wrap integral','Omelete verde','Fruta','Priorize comida de verdade.'),(4,'Panqueca de banana','Maçã','Arroz, lentilha e ovos','Cottage com cenoura','Salada morna de atum','Chá','Mastigue devagar.'),(5,'Tapioca com frango','Banana','Frango xadrez saudável','Smoothie','Bowl de quinoa','Iogurte','Evite beliscar sem fome.'),(6,'Vitamina proteica','Fruta','Macarrão integral com atum','Mix de castanhas','Abobrinha recheada','Chá','Organize compras.'),(7,'Pão integral com ovo','Iogurte','Hambúrguer caseiro com salada','Maçã com pasta','Sopa leve','Fruta','Celebre a semana.'),(8,'Omelete verde','Banana','Frango, feijão e salada','Wrap integral','Tilápia e legumes','Chá','Reinicie com foco.'),(9,'Cuscuz com ovos','Castanhas','Carne moída e arroz','Iogurte','Crepioca','Fruta','Inclua vegetais.'),(10,'Iogurte com granola','Maçã','Grão de bico com frango','Sanduíche integral','Omelete','Chá','Consistência acima de perfeição.'),(11,'Panqueca de banana','Banana','Tilápia com batata','Cottage','Bowl de quinoa','Iogurte','Observe sua energia.'),(12,'Tapioca com queijo branco','Fruta','Frango xadrez','Smoothie','Sopa de legumes','Chá','Durma melhor.'),(13,'Vitamina proteica','Castanhas','Arroz, feijão, ovos e salada','Wrap','Abobrinha recheada','Fruta','Prepare marmitas.'),(14,'Pão integral com ovo','Iogurte','Frango grelhado completo','Maçã','Salada com ovos','Chá','Feche o ciclo e ajuste.');
+with wp as (
+ insert into workout_plans(week_number,day_label,muscle_groups,intensity,progression_tip) values
+ (1,'Dia A','Inferiores','Moderada','Aprenda execução e registre cargas.'),(1,'Dia B','Superiores','Moderada','Controle o movimento.'),(1,'Dia C','Corpo todo + cardio','Leve/moderada','Finalize com 15 min de caminhada.'),
+ (2,'Dia A','Inferiores','Moderada','Aumente 1 repetição por série se possível.'),(2,'Dia B','Superiores','Moderada','Mantenha descanso consistente.'),(2,'Dia C','Corpo todo + cardio','Moderada','Caminhada 20 min.'),
+ (3,'Dia A','Inferiores','Moderada/alta','Pequeno aumento de carga com técnica.'),(3,'Dia B','Superiores','Moderada/alta','Evite roubar repetições.'),(3,'Dia C','Corpo todo + cardio','Moderada','Cardio 20-25 min.'),
+ (4,'Dia A','Inferiores','Moderada/alta','Consolide evolução sem dor.'),(4,'Dia B','Superiores','Moderada/alta','Busque execução limpa.'),(4,'Dia C','Corpo todo + cardio','Moderada','Cardio 25 min.') returning id, day_label
+)
+insert into workout_exercises(workout_plan_id,name,sets,reps,rest_seconds,execution,cautions,image_url)
+select id,'Agachamento',3,'10-12',75,'Coluna neutra, desça com controle e suba empurrando o chão.','Evite joelhos colapsarem para dentro.','/exercise-placeholder.svg' from wp where day_label='Dia A'
+union all select id,'Leg press',3,'10-12',75,'Pés firmes, desça até amplitude confortável e empurre sem travar joelhos.','Não tire o quadril do banco.','/exercise-placeholder.svg' from wp where day_label='Dia A'
+union all select id,'Cadeira extensora',3,'12',60,'Suba controlando e contraia quadríceps no topo.','Não use impulso.','/exercise-placeholder.svg' from wp where day_label='Dia A'
+union all select id,'Supino máquina ou flexão',3,'8-12',75,'Empurre com controle mantendo ombros estáveis.','Pare em caso de dor no ombro.','/exercise-placeholder.svg' from wp where day_label='Dia B'
+union all select id,'Remada baixa',3,'10-12',75,'Puxe com cotovelos, peito aberto e tronco estável.','Não balance o corpo.','/exercise-placeholder.svg' from wp where day_label='Dia B'
+union all select id,'Desenvolvimento',3,'10',75,'Empurre acima da cabeça com abdômen firme.','Evite arquear lombar.','/exercise-placeholder.svg' from wp where day_label='Dia B'
+union all select id,'Circuito funcional',3,'12 por movimento',60,'Agachamento, flexão adaptada, remada elástica ou mochila, prancha.','Adapte amplitude e intensidade.','/exercise-placeholder.svg' from wp where day_label='Dia C';

@@ -1,0 +1,1 @@
+export function ExerciseCard({name,sets,reps,how}:{name:string;sets:string;reps:string;how:string}){return <div className="rounded-2xl border bg-white p-4"><b>{name}</b><p className="text-sm text-slate-600">{sets} séries • {reps} • descanso 60-90s</p><p className="mt-2 text-sm">{how}</p></div>}
