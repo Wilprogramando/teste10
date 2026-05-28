@@ -158,7 +158,6 @@ export default function PerfilPage() {
       health_notes: form.health_notes.trim() || null,
       goal: form.goal,
       level: form.level,
-      fitness_level: form.level,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),
     };
