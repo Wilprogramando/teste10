@@ -91,7 +91,8 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino A',
     focus: 'Peito, ombros e tríceps',
     intensity: 'Moderada a alta',
-    notes: 'Semana de progressão. Aumente carga ou repetições com segurança.',
+    notes:
+      'Semana de progressão. Aumente carga ou repetições com segurança.',
   },
   {
     id: 'fallback-8',
@@ -101,7 +102,8 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas e bíceps',
     intensity: 'Moderada a alta',
-    notes: 'Controle a fase de descida dos movimentos e mantenha estabilidade.',
+    notes:
+      'Controle a fase de descida dos movimentos e mantenha estabilidade.',
   },
   {
     id: 'fallback-9',
@@ -111,7 +113,8 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino C',
     focus: 'Pernas e abdômen',
     intensity: 'Moderada a alta',
-    notes: 'Atenção a joelhos, lombar e respiração durante os exercícios.',
+    notes:
+      'Atenção a joelhos, lombar e respiração durante os exercícios.',
   },
   {
     id: 'fallback-10',
@@ -320,7 +323,9 @@ function WeekButton({
       <p className="text-xs font-black uppercase tracking-wide opacity-80">
         Semana
       </p>
+
       <p className="mt-1 text-3xl font-black">{week}</p>
+
       <p className="mt-1 text-xs font-semibold opacity-80">
         {week === 1 && 'Adaptação'}
         {week === 2 && 'Consistência'}
@@ -488,10 +493,13 @@ function WorkoutDayCard({
 export function WorkoutPlanView({
   plans,
   exercises,
+  userLevel,
+  trainingFrequency,
 }: {
   plans: WorkoutPlanItem[];
   exercises: WorkoutExerciseItem[];
-  hasError: boolean;
+  userLevel: string;
+  trainingFrequency: string;
 }) {
   const workoutPlans = plans.length > 0 ? plans : fallbackPlans;
   const [selectedWeek, setSelectedWeek] = useState(1);
@@ -535,14 +543,14 @@ export function WorkoutPlanView({
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
               Perfil
             </p>
-            <p className="mt-2 text-3xl font-black">Iniciante</p>
+            <p className="mt-2 text-3xl font-black">{userLevel}</p>
           </div>
 
           <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
               Frequência
             </p>
-            <p className="mt-2 text-3xl font-black">3x semana</p>
+            <p className="mt-2 text-3xl font-black">{trainingFrequency}</p>
           </div>
         </div>
       </section>
