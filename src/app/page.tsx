@@ -42,12 +42,6 @@ export default function HomePage() {
             Um sistema completo para acompanhar treinos, alimentação, progresso,
             hábitos e motivação diária com dados protegidos por usuário.
           </p>
-
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/auth/login" className="btn-primary">
-              Começar agora
-            </Link>
-          </div>
         </div>
 
         <div className="rounded-[2rem] border bg-white/80 p-6 shadow-xl shadow-emerald-100">
