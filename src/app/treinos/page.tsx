@@ -1,6 +1,7 @@
 import { AppShell } from '@/components/AppShell';
 import { WorkoutPlanView } from '@/components/WorkoutPlanView';
 import { createServerSupabase } from '@/lib/supabaseServer';
+import { redirect } from 'next/navigation';
 
 export type WorkoutPlanItem = {
   id: string;
@@ -66,28 +67,64 @@ function normalizeExercise(exercise: any): WorkoutExerciseItem {
   };
 }
 
+function formatLevel(level?: string | null) {
+  const normalized = String(level ?? '')
+    .toLowerCase()
+    .trim();
+
+  const labels: Record<string, string> = {
+    iniciante: 'Iniciante',
+    intermediario: 'Intermediário',
+    intermediário: 'Intermediário',
+    avancado: 'Avançado',
+    avançado: 'Avançado',
+  };
+
+  return labels[normalized] ?? 'Iniciante';
+}
+
 export default async function TreinosPage() {
   const supabase = createServerSupabase();
 
-  const { data: plansData, error: plansError } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/auth/login');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('level, fitness_level, training_frequency')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const { data: plansData } = await supabase
     .from('workout_plans')
     .select('*')
     .order('week_number', { ascending: true })
     .order('day_number', { ascending: true });
 
-  const { data: exercisesData, error: exercisesError } = await supabase
+  const { data: exercisesData } = await supabase
     .from('workout_exercises')
     .select('*');
 
   const plans = ((plansData ?? []) as any[]).map(normalizeWorkoutPlan);
   const exercises = ((exercisesData ?? []) as any[]).map(normalizeExercise);
 
+  const userLevel = formatLevel(profile?.level ?? profile?.fitness_level);
+  const trainingFrequency = profile?.training_frequency
+    ? `${profile.training_frequency}x semana`
+    : '3x semana';
+
   return (
     <AppShell>
       <WorkoutPlanView
         plans={plans}
         exercises={exercises}
-        hasError={Boolean(plansError || exercisesError)}
+        userLevel={userLevel}
+        trainingFrequency={trainingFrequency}
       />
     </AppShell>
   );
