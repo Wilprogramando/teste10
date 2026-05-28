@@ -1,7 +1,10 @@
+import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { WorkoutPlanView } from '@/components/WorkoutPlanView';
 import { createServerSupabase } from '@/lib/supabaseServer';
-import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export type WorkoutPlanItem = {
   id: string;
@@ -24,6 +27,12 @@ export type WorkoutExerciseItem = {
   instructions: string;
   precautions: string;
   image_url: string | null;
+};
+
+type ProfileRow = {
+  level?: string | null;
+  fitness_level?: string | null;
+  training_frequency?: number | string | null;
 };
 
 function normalizeWorkoutPlan(plan: any): WorkoutPlanItem {
@@ -83,6 +92,20 @@ function formatLevel(level?: string | null) {
   return labels[normalized] ?? 'Iniciante';
 }
 
+function formatTrainingFrequency(value?: number | string | null) {
+  if (!value) {
+    return '3x semana';
+  }
+
+  const numberValue = Number(value);
+
+  if (Number.isNaN(numberValue) || numberValue <= 0) {
+    return '3x semana';
+  }
+
+  return `${numberValue}x semana`;
+}
+
 export default async function TreinosPage() {
   const supabase = createServerSupabase();
 
@@ -94,11 +117,13 @@ export default async function TreinosPage() {
     redirect('/auth/login');
   }
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('profiles')
     .select('level, fitness_level, training_frequency')
     .eq('user_id', user.id)
     .maybeSingle();
+
+  const profile = profileData as ProfileRow | null;
 
   const { data: plansData } = await supabase
     .from('workout_plans')
@@ -114,9 +139,7 @@ export default async function TreinosPage() {
   const exercises = ((exercisesData ?? []) as any[]).map(normalizeExercise);
 
   const userLevel = formatLevel(profile?.level ?? profile?.fitness_level);
-  const trainingFrequency = profile?.training_frequency
-    ? `${profile.training_frequency}x semana`
-    : '3x semana';
+  const trainingFrequency = formatTrainingFrequency(profile?.training_frequency);
 
   return (
     <AppShell>
