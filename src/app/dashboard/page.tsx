@@ -1,6 +1,4 @@
 import { redirect } from 'next/navigation';
-import { AppShell } from '@/components/AppShell';
-import { createServerSupabase } from '@/lib/supabaseServer';
 import {
   Activity,
   CalendarCheck,
@@ -11,6 +9,11 @@ import {
   Target,
   TrendingDown,
 } from 'lucide-react';
+import { AppShell } from '@/components/AppShell';
+import { createServerSupabase } from '@/lib/supabaseServer';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type Profile = {
   full_name?: string | null;
@@ -39,6 +42,12 @@ type ProgressStage = {
   description?: string | null;
   motivation?: string | null;
   percentage?: number | null;
+};
+
+type UserMetric = {
+  weight_kg?: number | null;
+  measured_at?: string | null;
+  created_at?: string | null;
 };
 
 function formatGoal(goal?: string | null) {
@@ -123,6 +132,17 @@ export default async function DashboardPage() {
 
   const profile = profileData as Profile;
 
+  const { data: latestMetricData } = await supabase
+    .from('user_metrics')
+    .select('weight_kg, measured_at, created_at')
+    .eq('user_id', user.id)
+    .order('measured_at', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const latestMetric = latestMetricData as UserMetric | null;
+
   const { data: progressData } = await supabase
     .from('daily_progress')
     .select('*')
@@ -153,7 +173,10 @@ export default async function DashboardPage() {
     profile.initial_weight_kg ?? profile.initial_weight ?? null;
 
   const currentWeight =
-    profile.current_weight_kg ?? profile.current_weight ?? initialWeight;
+    latestMetric?.weight_kg ??
+    profile.current_weight_kg ??
+    profile.current_weight ??
+    initialWeight;
 
   const height = profile.height_cm ?? null;
   const age = profile.age ?? null;
@@ -212,14 +235,16 @@ export default async function DashboardPage() {
             title="Peso atual"
             value={formatNumber(currentWeight, ' kg')}
             subtitle={
-              weightDiff === null
-                ? 'Aguardando dados'
-                : weightDiff === 0
-                  ? 'Sem alteração'
-                  : `${weightDiff > 0 ? '+' : ''}${formatNumber(
-                      weightDiff,
-                      ' kg'
-                    )}`
+              latestMetric?.weight_kg
+                ? 'Atualizado pelo progresso'
+                : weightDiff === null
+                  ? 'Aguardando dados'
+                  : weightDiff === 0
+                    ? 'Sem alteração'
+                    : `${weightDiff > 0 ? '+' : ''}${formatNumber(
+                        weightDiff,
+                        ' kg'
+                      )}`
             }
             icon={TrendingDown}
           />
