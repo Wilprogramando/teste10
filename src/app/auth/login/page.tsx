@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
 
 type AuthMode = 'login' | 'signup' | 'reset-request' | 'reset-password';
 
-export default function LoginPage() {
+function LoginContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -86,7 +86,9 @@ export default function LoginPage() {
       return;
     }
 
-    setMsg('Enviamos um link de recuperação para seu e-mail. Verifique sua caixa de entrada e spam.');
+    setMsg(
+      'Enviamos um link de recuperação para seu e-mail. Verifique sua caixa de entrada e spam.'
+    );
   }
 
   async function updatePassword() {
@@ -149,7 +151,9 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-6 grid gap-3">
-          {(mode === 'login' || mode === 'signup' || mode === 'reset-request') && (
+          {(mode === 'login' ||
+            mode === 'signup' ||
+            mode === 'reset-request') && (
             <input
               className="input"
               placeholder="E-mail"
@@ -189,7 +193,7 @@ export default function LoginPage() {
             </>
           )}
 
-          {mode === 'login' || mode === 'signup' ? (
+          {(mode === 'login' || mode === 'signup') && (
             <button className="btn" disabled={loading} onClick={submit}>
               {loading
                 ? 'Aguarde...'
@@ -197,7 +201,7 @@ export default function LoginPage() {
                   ? 'Entrar'
                   : 'Cadastrar'}
             </button>
-          ) : null}
+          )}
 
           {mode === 'reset-request' && (
             <button className="btn" disabled={loading} onClick={sendResetEmail}>
@@ -267,5 +271,21 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-md px-4 py-16">
+          <div className="card">
+            <p className="text-slate-600">Carregando...</p>
+          </div>
+        </main>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
