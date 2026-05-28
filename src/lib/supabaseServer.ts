@@ -1,9 +1,10 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
-const FALLBACK_SUPABASE_URL = 'https://example.supabase.co';
+const FALLBACK_SUPABASE_URL = 'https://cbwxgsfxkjgeuklnokzv.supabase.co';
+
 const FALLBACK_SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder.placeholder';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNid3hnc2Z4a2pnZXVrbG5va3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NTA0NzIsImV4cCI6MjA5NTQyNjQ3Mn0.vNrVdTrhkRYkkn4tx83bu_tGvhnOaQ7dzE4fDO1JIWo';
 
 export function createServerSupabase() {
   const cookieStore = cookies();
