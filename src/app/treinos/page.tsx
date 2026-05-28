@@ -1,6 +1,94 @@
 import { AppShell } from '@/components/AppShell';
-import { WorkoutCard } from '@/components/WorkoutCard';
-import { ExerciseCard } from '@/components/ExerciseCard';
-const weeks=[1,2,3,4];
-const ex=[['Agachamento livre ou guiado','3','10-12','Pés na largura dos ombros, coluna neutra, desça controlando e suba empurrando o chão.'],['Supino máquina ou flexão','3','8-12','Mantenha escápulas firmes, desça com controle e evite travar os cotovelos.'],['Remada baixa','3','10-12','Puxe com os cotovelos, peito aberto e sem balançar o tronco.'],['Desenvolvimento de ombros','3','10','Empurre acima da cabeça com abdômen firme e movimento controlado.'],['Prancha','3','30-45s','Contraia abdômen e glúteos, mantendo cabeça, tronco e quadril alinhados.']];
-export default function Treinos(){return <AppShell><h1 className="text-4xl font-black">Plano de treinos 4 semanas</h1><p className="mt-2 text-slate-600">Para iniciantes e intermediários. Ajuste cargas com segurança e procure orientação profissional em caso de dor.</p><div className="mt-6 grid gap-4">{weeks.map(w=><WorkoutCard key={w} title={`Semana ${w} - força, consistência e progressão`}><p>Divisão: Dia A membros inferiores, Dia B superiores, Dia C corpo todo + cardio. Intensidade {w<3?'moderada':'moderada/alta'}. Progressão: aumente 1-2 repetições ou pequena carga se a execução estiver limpa.</p><div className="mt-4 grid gap-3">{ex.map(([name,sets,reps,how])=><ExerciseCard key={name} name={name} sets={sets} reps={reps} how={how}/>)}</div></WorkoutCard>)}</div><div className="card mt-6"><h2 className="text-xl font-black">Alternativa em casa sem equipamentos</h2><p className="mt-2 text-slate-600">3 a 4 voltas: agachamento 15 reps, flexão adaptada 8-12, avanço 10 cada perna, ponte de glúteos 15, prancha 30s, polichinelo 40s. Descanse 60s entre voltas.</p></div></AppShell>}
+import { WorkoutPlanView } from '@/components/WorkoutPlanView';
+import { createServerSupabase } from '@/lib/supabaseServer';
+
+export type WorkoutPlanItem = {
+  id: string;
+  week_number: number;
+  day_number: number;
+  day_name: string;
+  title: string;
+  focus: string;
+  intensity: string;
+  notes: string;
+};
+
+export type WorkoutExerciseItem = {
+  id: string;
+  workout_plan_id: string;
+  name: string;
+  sets: string;
+  reps: string;
+  rest_seconds: number;
+  instructions: string;
+  precautions: string;
+  image_url: string | null;
+};
+
+function normalizeWorkoutPlan(plan: any): WorkoutPlanItem {
+  return {
+    id: String(plan.id),
+    week_number: Number(plan.week_number ?? plan.week ?? 1),
+    day_number: Number(plan.day_number ?? 1),
+    day_name: String(plan.day_name ?? plan.day ?? 'Dia de treino'),
+    title: String(plan.title ?? plan.name ?? 'Treino do dia'),
+    focus: String(plan.focus ?? plan.muscle_group ?? 'Corpo completo'),
+    intensity: String(plan.intensity ?? 'Moderada'),
+    notes: String(
+      plan.notes ??
+        plan.description ??
+        'Execute com controle, boa postura e respeitando seus limites.'
+    ),
+  };
+}
+
+function normalizeExercise(exercise: any): WorkoutExerciseItem {
+  return {
+    id: String(exercise.id),
+    workout_plan_id: String(
+      exercise.workout_plan_id ?? exercise.plan_id ?? exercise.workout_id
+    ),
+    name: String(exercise.name ?? exercise.exercise_name ?? 'Exercício'),
+    sets: String(exercise.sets ?? '3'),
+    reps: String(exercise.reps ?? exercise.repetitions ?? '12'),
+    rest_seconds: Number(exercise.rest_seconds ?? exercise.rest ?? 60),
+    instructions: String(
+      exercise.instructions ??
+        exercise.execution ??
+        'Execute o movimento com controle, mantendo boa postura.'
+    ),
+    precautions: String(
+      exercise.precautions ??
+        exercise.care_notes ??
+        'Evite cargas excessivas e interrompa em caso de dor.'
+    ),
+    image_url: exercise.image_url ?? null,
+  };
+}
+
+export default async function TreinosPage() {
+  const supabase = createServerSupabase();
+
+  const { data: plansData, error: plansError } = await supabase
+    .from('workout_plans')
+    .select('*')
+    .order('week_number', { ascending: true })
+    .order('day_number', { ascending: true });
+
+  const { data: exercisesData, error: exercisesError } = await supabase
+    .from('workout_exercises')
+    .select('*');
+
+  const plans = ((plansData ?? []) as any[]).map(normalizeWorkoutPlan);
+  const exercises = ((exercisesData ?? []) as any[]).map(normalizeExercise);
+
+  return (
+    <AppShell>
+      <WorkoutPlanView
+        plans={plans}
+        exercises={exercises}
+        hasError={Boolean(plansError || exercisesError)}
+      />
+    </AppShell>
+  );
+}
