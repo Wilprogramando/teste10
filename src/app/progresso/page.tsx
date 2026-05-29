@@ -72,6 +72,12 @@ const initialForm: MetricForm = {
 const MAX_CHART_WEIGHT = 300;
 const MIN_CHART_WEIGHT = 20;
 
+function getTodayInBrazil() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
+}
+
 function toNumberOrNull(value: string) {
   if (!value || value.trim() === '') {
     return null;
@@ -95,17 +101,26 @@ function formatNumber(value?: number | null) {
   return String(Number(value).toFixed(1)).replace('.', ',');
 }
 
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-  }).format(new Date(date));
+function formatShortDate(date: string) {
+  const cleanDate = date.split('T')[0];
+  const [year, month, day] = cleanDate.split('-');
+
+  if (!year || !month || !day) {
+    return date;
+  }
+
+  return `${day}/${month}`;
 }
 
-function getTodayDate() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-  }).format(new Date());
+function formatFullDate(date: string) {
+  const cleanDate = date.split('T')[0];
+  const [year, month, day] = cleanDate.split('-');
+
+  if (!year || !month || !day) {
+    return date;
+  }
+
+  return `${day}/${month}/${year}`;
 }
 
 function MetricCard({
@@ -167,6 +182,7 @@ export default function ProgressoPage() {
   const supabase = createClient();
 
   const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [completedDays, setCompletedDays] = useState(0);
   const [form, setForm] = useState<MetricForm>(initialForm);
 
   const [loading, setLoading] = useState(true);
@@ -178,7 +194,7 @@ export default function ProgressoPage() {
   );
 
   useEffect(() => {
-    async function loadMetrics() {
+    async function loadProgressData() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -188,18 +204,31 @@ export default function ProgressoPage() {
         return;
       }
 
-      const { data } = await supabase
-        .from('user_metrics')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('measured_at', { ascending: true })
-        .order('created_at', { ascending: true });
+      const today = getTodayInBrazil();
 
-      setMetrics((data ?? []) as Metric[]);
+      const [{ data: metricsData }, { count: completedDaysCount }] =
+        await Promise.all([
+          supabase
+            .from('user_metrics')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('measured_at', { ascending: true })
+            .order('created_at', { ascending: true }),
+
+          supabase
+            .from('daily_progress')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('completed', true)
+            .lt('date', today),
+        ]);
+
+      setMetrics((metricsData ?? []) as Metric[]);
+      setCompletedDays(completedDaysCount ?? 0);
       setLoading(false);
     }
 
-    loadMetrics();
+    loadProgressData();
   }, [supabase]);
 
   function updateField(field: keyof MetricForm, value: string) {
@@ -242,10 +271,8 @@ export default function ProgressoPage() {
   const chartData = useMemo(() => {
     return validChartMetrics.map((metric, index) => ({
       index: index + 1,
-      date: formatDate(metric.measured_at),
-      fullDate: new Intl.DateTimeFormat('pt-BR').format(
-        new Date(metric.measured_at)
-      ),
+      date: formatShortDate(metric.measured_at),
+      fullDate: formatFullDate(metric.measured_at),
       weight: Number(metric.weight_kg),
     }));
   }, [validChartMetrics]);
@@ -328,7 +355,7 @@ export default function ProgressoPage() {
       mood: toNumberOrNull(form.mood),
       sleep_quality: toNumberOrNull(form.sleep_quality),
       notes: form.notes.trim() || null,
-      measured_at: getTodayDate(),
+      measured_at: getTodayInBrazil(),
       updated_at: new Date().toISOString(),
     };
 
@@ -393,7 +420,7 @@ export default function ProgressoPage() {
           </p>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard
             title="Peso atual"
             value={`${formatNumber(latestWeight)} kg`}
@@ -411,7 +438,18 @@ export default function ProgressoPage() {
                   ).replace('.', ',')} kg`
             }
             description="Desde o primeiro registro"
-            icon={weightDifference && weightDifference < 0 ? TrendingDown : TrendingUp}
+            icon={
+              weightDifference && weightDifference < 0
+                ? TrendingDown
+                : TrendingUp
+            }
+          />
+
+          <MetricCard
+            title="Dias concluídos"
+            value={String(completedDays)}
+            description="Conta após meia-noite"
+            icon={CalendarCheck}
           />
 
           <MetricCard
@@ -776,9 +814,7 @@ export default function ProgressoPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-sm font-black text-slate-950">
-                              {new Intl.DateTimeFormat('pt-BR').format(
-                                new Date(metric.measured_at)
-                              )}
+                              {formatFullDate(metric.measured_at)}
                             </p>
 
                             <p className="mt-1 text-sm text-slate-500">
