@@ -16,10 +16,10 @@ body {
   margin: 0;
   color: #0f172a;
   background:
-    radial-gradient(circle at top left, rgba(5, 150, 105, 0.48), transparent 34%),
-    radial-gradient(circle at top right, rgba(20, 184, 166, 0.42), transparent 30%),
-    radial-gradient(circle at bottom left, rgba(4, 120, 87, 0.38), transparent 34%),
-    linear-gradient(180deg, #86efac 0%, #6ee7b7 42%, #34d399 100%);
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(5, 150, 105, 0.10), transparent 34%),
+    linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 45%, #f7fef9 100%);
   background-attachment: fixed;
 }
 
@@ -30,10 +30,10 @@ body::before {
   z-index: -2;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(4, 120, 87, 0.13) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(4, 120, 87, 0.13) 1px, transparent 1px);
+    linear-gradient(rgba(5, 150, 105, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 150, 105, 0.045) 1px, transparent 1px);
   background-size: 32px 32px;
-  opacity: 0.55;
+  opacity: 0.38;
 }
 
 body::after {
@@ -43,62 +43,62 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.36), transparent 28%),
-    radial-gradient(circle at 80% 10%, rgba(209, 250, 229, 0.24), transparent 26%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.70), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgba(236, 253, 245, 0.45), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.18));
 }
 
-/* Remove fundos claros antigos das telas para aparecer o verde geral */
+/* Remove fundos antigos muito brancos das telas */
 body > main,
 body main.min-h-screen {
   background: transparent !important;
 }
 
-/* Fundo dos blocos principais dentro das abas */
+/* Fundo principal dos cards/abas: verde bem fraco */
 .bg-white {
-  background-color: rgba(240, 253, 244, 0.94) !important;
+  background-color: rgba(248, 255, 250, 0.96) !important;
 }
 
-/* Quadrados internos, cards secundários e áreas claras */
+/* Quadrados internos e áreas secundárias: verde suave */
 .bg-slate-50 {
-  background-color: rgba(187, 247, 208, 0.82) !important;
+  background-color: rgba(240, 253, 244, 0.78) !important;
 }
 
 .bg-emerald-50 {
-  background-color: rgba(167, 243, 208, 0.92) !important;
+  background-color: rgba(220, 252, 231, 0.72) !important;
 }
 
 .bg-emerald-100 {
-  background-color: rgba(110, 231, 183, 0.92) !important;
+  background-color: rgba(209, 250, 229, 0.68) !important;
 }
 
-/* Bordas dos cards ficam mais visíveis */
+/* Bordas leves em verde */
 .border-slate-100 {
-  border-color: rgba(5, 150, 105, 0.22) !important;
+  border-color: rgba(16, 185, 129, 0.12) !important;
 }
 
 .border-slate-200 {
-  border-color: rgba(5, 150, 105, 0.32) !important;
+  border-color: rgba(16, 185, 129, 0.18) !important;
 }
 
 .border-emerald-100 {
-  border-color: rgba(5, 150, 105, 0.32) !important;
+  border-color: rgba(16, 185, 129, 0.18) !important;
 }
 
 .border-emerald-200 {
-  border-color: rgba(4, 120, 87, 0.40) !important;
+  border-color: rgba(16, 185, 129, 0.24) !important;
 }
 
-/* Sombras mais verdes */
+/* Sombras suaves em verde */
 .shadow-sm {
-  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.08) !important;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.045) !important;
 }
 
 .shadow-xl {
-  box-shadow: 0 20px 45px rgba(5, 150, 105, 0.18) !important;
+  box-shadow: 0 20px 45px rgba(5, 150, 105, 0.09) !important;
 }
 
-/* Mantém botões e áreas fortes com cor original */
+/* Mantém botões e áreas de alerta com cores originais */
 .bg-slate-950,
 .bg-slate-900,
 .bg-slate-800,
@@ -132,6 +132,6 @@ textarea {
 }
 
 ::selection {
-  background: #047857;
+  background: #10b981;
   color: white;
 }
