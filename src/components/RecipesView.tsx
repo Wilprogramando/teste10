@@ -13,6 +13,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import type { Recipe } from '@/app/receitas/page';
+import ShaderBackground from '@/components/ui/shader-background';
 
 type Category = {
   key: string;
@@ -226,6 +227,7 @@ function getCategoryKey(category?: string | null) {
 
 function getCategoryByRecipe(recipe: Recipe) {
   const key = getCategoryKey(recipe.category);
+
   return categories.find((category) => category.key === key) ?? categories[1];
 }
 
@@ -254,7 +256,9 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
   const instructions = parseList(recipe.instructions);
 
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-emerald-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <article className="relative overflow-hidden rounded-[2rem] border border-emerald-200/80 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(45,212,191,0.14),transparent_35%)]" />
+
       <div className="relative bg-gradient-to-br from-emerald-100 via-emerald-50 to-teal-100 p-5">
         <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-800 shadow-sm">
           {recipeCategory.label}
@@ -277,7 +281,7 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
         </div>
       </div>
 
-      <div className="p-5">
+      <div className="relative p-5">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-emerald-50 p-3">
             <div className="flex items-center gap-2 text-emerald-700">
@@ -404,152 +408,163 @@ export function RecipesView({
   }
 
   return (
-    <div className="space-y-6 pb-10">
-      <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
-          <ChefHat size={16} />
-          Receitas saudáveis
-        </span>
+    <div className="relative -mx-4 min-h-screen overflow-hidden px-4 pb-10 md:-mx-6 md:px-6">
+      <ShaderBackground className="absolute inset-0 -z-10 h-full w-full opacity-80" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-white/35" />
 
-        <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-          Escolha sua refeição
-        </h1>
+      <div className="relative space-y-6">
+        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
+          <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_top_right,rgba(255,255,255,0.35),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(167,243,208,0.28),transparent_28%)]" />
 
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-          Toque em uma categoria para liberar as receitas daquela refeição.
-        </p>
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
+              <ChefHat size={16} />
+              Receitas saudáveis
+            </span>
 
-        <div className="mt-7 rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
-          <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
-            Total de receitas cadastradas
-          </p>
+            <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
+              Escolha sua refeição
+            </h1>
 
-          <p className="mt-3 text-4xl font-black text-white">{totalRecipes}</p>
-        </div>
-      </section>
-
-      {hasError && (
-        <div className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-800">
-          Não foi possível carregar as receitas do banco agora. Mostrando opções
-          padrão para manter a experiência funcionando.
-        </div>
-      )}
-
-      <section className="rounded-[2rem] border border-emerald-100 bg-white p-5 shadow-sm md:p-6">
-        <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
-            <Search size={23} />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-black text-slate-950">
-              Qual refeição você quer fazer?
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Toque em uma categoria para liberar as receitas.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            const active = selectedCategory === category.key;
-            const count = getCategoryCount(category.key);
-
-            return (
-              <button
-                key={category.key}
-                type="button"
-                onClick={() => setSelectedCategory(category.key)}
-                className={`rounded-3xl border p-4 text-left transition ${
-                  active
-                    ? 'border-emerald-950 bg-emerald-800 text-white shadow-lg shadow-emerald-200'
-                    : 'border-emerald-200 bg-emerald-100 text-slate-800 hover:border-emerald-500 hover:bg-emerald-200'
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-                    active
-                      ? 'bg-white/20 text-white'
-                      : 'bg-emerald-50 text-emerald-800'
-                  }`}
-                >
-                  <Icon size={22} />
-                </div>
-
-                <p className="mt-4 text-base font-black">{category.label}</p>
-
-                <p
-                  className={`mt-1 text-sm ${
-                    active ? 'text-emerald-50' : 'text-emerald-800'
-                  }`}
-                >
-                  {count} opções
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section>
-        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-800">
-              Categoria selecionada
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
+              Toque em uma categoria para liberar as receitas daquela refeição.
             </p>
 
-            <div className="mt-2 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
-                <SelectedIcon size={24} />
-              </div>
+            <div className="mt-7 rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
+                Total de receitas cadastradas
+              </p>
 
-              <div>
-                <h2 className="text-3xl font-black text-slate-950">
-                  {selectedCategoryData.label}
-                </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {selectedCategoryData.description}
-                </p>
-              </div>
+              <p className="mt-3 text-4xl font-black text-white">
+                {totalRecipes}
+              </p>
             </div>
           </div>
+        </section>
 
-          <button
-            type="button"
-            onClick={() => setSelectedCategory(categories[0].key)}
-            className="w-fit rounded-full bg-emerald-100 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-200"
-          >
-            Trocar
-          </button>
-        </div>
-
-        {selectedRecipes.length > 0 ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {selectedRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-[2rem] border border-emerald-100 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-800">
-              <SelectedIcon size={30} />
-            </div>
-
-            <h3 className="mt-5 text-2xl font-black text-slate-950">
-              Nenhuma receita nessa categoria
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Cadastre receitas para {selectedCategoryData.label} no banco de
-              dados ou escolha outra refeição.
-            </p>
+        {hasError && (
+          <div className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-800">
+            Não foi possível carregar as receitas do banco agora. Mostrando
+            opções padrão para manter a experiência funcionando.
           </div>
         )}
-      </section>
+
+        <section className="rounded-[2rem] border border-emerald-100 bg-white/90 p-5 shadow-sm backdrop-blur md:p-6">
+          <div className="mb-5 flex items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
+              <Search size={23} />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-black text-slate-950">
+                Qual refeição você quer fazer?
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Toque em uma categoria para liberar as receitas.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const active = selectedCategory === category.key;
+              const count = getCategoryCount(category.key);
+
+              return (
+                <button
+                  key={category.key}
+                  type="button"
+                  onClick={() => setSelectedCategory(category.key)}
+                  className={`rounded-3xl border p-4 text-left transition ${
+                    active
+                      ? 'border-emerald-950 bg-emerald-800 text-white shadow-lg shadow-emerald-200'
+                      : 'border-emerald-200 bg-emerald-100 text-slate-800 hover:border-emerald-500 hover:bg-emerald-200'
+                  }`}
+                >
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                      active
+                        ? 'bg-white/20 text-white'
+                        : 'bg-emerald-50 text-emerald-800'
+                    }`}
+                  >
+                    <Icon size={22} />
+                  </div>
+
+                  <p className="mt-4 text-base font-black">{category.label}</p>
+
+                  <p
+                    className={`mt-1 text-sm ${
+                      active ? 'text-emerald-50' : 'text-emerald-800'
+                    }`}
+                  >
+                    {count} opções
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-800">
+                Categoria selecionada
+              </p>
+
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
+                  <SelectedIcon size={24} />
+                </div>
+
+                <div>
+                  <h2 className="text-3xl font-black text-slate-950">
+                    {selectedCategoryData.label}
+                  </h2>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    {selectedCategoryData.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedCategory(categories[0].key)}
+              className="w-fit rounded-full bg-emerald-100 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-200"
+            >
+              Trocar
+            </button>
+          </div>
+
+          {selectedRecipes.length > 0 ? (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {selectedRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[2rem] border border-emerald-100 bg-white/90 p-8 text-center shadow-sm backdrop-blur">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-800">
+                <SelectedIcon size={30} />
+              </div>
+
+              <h3 className="mt-5 text-2xl font-black text-slate-950">
+                Nenhuma receita nessa categoria
+              </h3>
+
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Cadastre receitas para {selectedCategoryData.label} no banco de
+                dados ou escolha outra refeição.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
