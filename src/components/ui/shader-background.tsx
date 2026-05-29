@@ -172,13 +172,13 @@ export default function ShaderBackground({
   }
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvasElement = canvasRef.current;
 
-    if (!canvas) {
+    if (!canvasElement) {
       return;
     }
 
-    const gl = canvas.getContext('webgl', {
+    const gl = canvasElement.getContext('webgl', {
       alpha: true,
       antialias: true,
       preserveDrawingBuffer: false,
@@ -220,13 +220,13 @@ export default function ShaderBackground({
     const timeLocation = gl.getUniformLocation(shaderProgram, 'iTime');
 
     function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
+      const rect = canvasElement.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      canvasElement.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvasElement.height = Math.max(1, Math.floor(rect.height * dpr));
 
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.viewport(0, 0, canvasElement.width, canvasElement.height);
     }
 
     resizeCanvas();
@@ -243,7 +243,12 @@ export default function ShaderBackground({
 
       gl.useProgram(shaderProgram);
 
-      gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+      gl.uniform2f(
+        resolutionLocation,
+        canvasElement.width,
+        canvasElement.height
+      );
+
       gl.uniform1f(timeLocation, currentTime);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
