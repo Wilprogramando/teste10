@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
@@ -11,8 +12,11 @@ import {
   Dumbbell,
   Flame,
   Home,
+  Lock,
   ShieldCheck,
   Target,
+  Timer,
+  Unlock,
 } from 'lucide-react';
 import type {
   WorkoutExerciseItem,
@@ -39,8 +43,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas e bíceps',
     intensity: 'Leve a moderada',
-    notes:
-      'Controle a execução e evite puxar cargas acima do necessário.',
+    notes: 'Controle a execução e evite puxar cargas acima do necessário.',
   },
   {
     id: 'fallback-3',
@@ -91,8 +94,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino A',
     focus: 'Peito, ombros e tríceps',
     intensity: 'Moderada a alta',
-    notes:
-      'Semana de progressão. Aumente carga ou repetições com segurança.',
+    notes: 'Semana de progressão. Aumente carga ou repetições com segurança.',
   },
   {
     id: 'fallback-8',
@@ -102,8 +104,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino B',
     focus: 'Costas e bíceps',
     intensity: 'Moderada a alta',
-    notes:
-      'Controle a fase de descida dos movimentos e mantenha estabilidade.',
+    notes: 'Controle a fase de descida dos movimentos e mantenha estabilidade.',
   },
   {
     id: 'fallback-9',
@@ -113,8 +114,7 @@ const fallbackPlans: WorkoutPlanItem[] = [
     title: 'Treino C',
     focus: 'Pernas e abdômen',
     intensity: 'Moderada a alta',
-    notes:
-      'Atenção a joelhos, lombar e respiração durante os exercícios.',
+    notes: 'Atenção a joelhos, lombar e respiração durante os exercícios.',
   },
   {
     id: 'fallback-10',
@@ -260,6 +260,35 @@ const fallbackExercises: WorkoutExerciseItem[] = [
   },
 ];
 
+function getUnlockedWeek(startDate: string) {
+  const start = new Date(startDate).getTime();
+  const now = Date.now();
+  const diff = now - start;
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+  return Math.min(Math.max(Math.floor(diff / sevenDays) + 1, 1), 4);
+}
+
+function getNextUnlockDate(startDate: string, nextWeek: number) {
+  const start = new Date(startDate);
+  start.setDate(start.getDate() + (nextWeek - 1) * 7);
+  return start;
+}
+
+function formatCountdown(ms: number) {
+  if (ms <= 0) {
+    return 'Liberado';
+  }
+
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
 function getExercisesForPlan(
   plan: WorkoutPlanItem,
   exercises: WorkoutExerciseItem[]
@@ -302,36 +331,71 @@ function getExercisesForPlan(
 function WeekButton({
   week,
   selectedWeek,
+  unlockedWeek,
+  countdown,
   setSelectedWeek,
 }: {
   week: number;
   selectedWeek: number;
+  unlockedWeek: number;
+  countdown: string;
   setSelectedWeek: (week: number) => void;
 }) {
   const active = selectedWeek === week;
+  const locked = week > unlockedWeek;
 
   return (
     <button
       type="button"
+      disabled={locked}
       onClick={() => setSelectedWeek(week)}
-      className={`rounded-3xl border p-4 text-left transition ${
+      className={`relative overflow-hidden rounded-3xl border p-4 text-left transition ${
         active
           ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
-          : 'border-slate-100 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+          : locked
+            ? 'cursor-not-allowed border-slate-100 bg-slate-100 text-slate-400'
+            : 'border-slate-100 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
       }`}
     >
-      <p className="text-xs font-black uppercase tracking-wide opacity-80">
-        Semana
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide opacity-80">
+            Semana
+          </p>
 
-      <p className="mt-1 text-3xl font-black">{week}</p>
+          <p className="mt-1 text-3xl font-black">{week}</p>
+        </div>
 
-      <p className="mt-1 text-xs font-semibold opacity-80">
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
+            active
+              ? 'bg-white/20 text-white'
+              : locked
+                ? 'bg-white text-slate-400'
+                : 'bg-emerald-50 text-emerald-700'
+          }`}
+        >
+          {locked ? <Lock size={18} /> : <Unlock size={18} />}
+        </div>
+      </div>
+
+      <p className="mt-2 text-xs font-semibold opacity-80">
         {week === 1 && 'Adaptação'}
         {week === 2 && 'Consistência'}
         {week === 3 && 'Progressão'}
         {week === 4 && 'Evolução'}
       </p>
+
+      {locked && week === unlockedWeek + 1 && (
+        <div className="mt-3 rounded-2xl bg-white/70 p-2">
+          <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">
+            Libera em
+          </p>
+          <p className="mt-1 text-xs font-black text-slate-700">
+            {countdown}
+          </p>
+        </div>
+      )}
     </button>
   );
 }
@@ -493,24 +557,49 @@ function WorkoutDayCard({
 export function WorkoutPlanView({
   plans,
   exercises,
+  userStartedAt,
 }: {
   plans: WorkoutPlanItem[];
   exercises: WorkoutExerciseItem[];
-  userLevel?: string;
-  trainingFrequency?: string;
+  userStartedAt: string;
 }) {
   const workoutPlans = plans.length > 0 ? plans : fallbackPlans;
+
+  const [now, setNow] = useState(Date.now());
   const [selectedWeek, setSelectedWeek] = useState(1);
 
+  const unlockedWeek = useMemo(() => {
+    return getUnlockedWeek(userStartedAt);
+  }, [userStartedAt, now]);
+
   const weeks = useMemo(() => {
-    return Array.from(
-      new Set(workoutPlans.map((plan) => plan.week_number))
-    ).sort((a, b) => a - b);
+    return Array.from(new Set(workoutPlans.map((plan) => plan.week_number)))
+      .sort((a, b) => a - b)
+      .slice(0, 4);
   }, [workoutPlans]);
+
+  const nextWeek = Math.min(unlockedWeek + 1, 4);
+  const hasNextWeek = unlockedWeek < 4;
+  const nextUnlockDate = getNextUnlockDate(userStartedAt, nextWeek);
+  const countdown = formatCountdown(nextUnlockDate.getTime() - now);
 
   const selectedPlans = workoutPlans.filter(
     (plan) => plan.week_number === selectedWeek
   );
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (selectedWeek > unlockedWeek) {
+      setSelectedWeek(unlockedWeek);
+    }
+  }, [selectedWeek, unlockedWeek]);
 
   return (
     <div className="space-y-6 pb-10">
@@ -521,27 +610,61 @@ export function WorkoutPlanView({
         </span>
 
         <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-          Treinos para criar força, disciplina e consistência.
+          Treinos liberados semana por semana.
         </h1>
 
         <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-          Escolha a semana, siga os treinos indicados e acompanhe a execução de
-          cada exercício com séries, repetições, descanso e cuidados.
+          A próxima semana será liberada automaticamente a cada 7 dias,
+          contando a partir do primeiro login.
         </p>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
+            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-50">
+              <Unlock size={15} />
+              Semana atual liberada
+            </p>
+            <p className="mt-2 text-3xl font-black">Semana {unlockedWeek}</p>
+          </div>
+
+          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
+            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-50">
+              <Timer size={15} />
+              Próxima liberação
+            </p>
+
+            {hasNextWeek ? (
+              <>
+                <p className="mt-2 text-3xl font-black">{countdown}</p>
+                <p className="mt-1 text-sm font-bold text-emerald-50">
+                  Para abrir a semana {nextWeek}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 text-3xl font-black">Tudo liberado</p>
+                <p className="mt-1 text-sm font-bold text-emerald-50">
+                  Todas as semanas estão disponíveis.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-            <CalendarDays size={23} />
+            <CalendarClock size={23} />
           </div>
 
           <div>
             <h2 className="text-lg font-black text-slate-950">
-              Escolha a semana do treino
+              Liberação das semanas
             </h2>
             <p className="text-sm text-slate-500">
-              Cada semana aumenta gradualmente foco, controle e intensidade.
+              Semana 1 liberada no início. Semanas 2, 3 e 4 liberam a cada 7
+              dias.
             </p>
           </div>
         </div>
@@ -552,6 +675,8 @@ export function WorkoutPlanView({
               key={week}
               week={week}
               selectedWeek={selectedWeek}
+              unlockedWeek={unlockedWeek}
+              countdown={countdown}
               setSelectedWeek={setSelectedWeek}
             />
           ))}
