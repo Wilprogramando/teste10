@@ -1,13 +1,17 @@
 import { redirect } from 'next/navigation';
 import {
   Activity,
+  Apple,
   CalendarCheck,
+  CheckCircle2,
   Dumbbell,
   Flame,
   HeartPulse,
   Scale,
   Target,
-  TrendingDown,
+  TrendingUp,
+  Trophy,
+  User,
 } from 'lucide-react';
 import { AppShell } from '@/components/AppShell';
 import { createServerSupabase } from '@/lib/supabaseServer';
@@ -15,98 +19,57 @@ import { createServerSupabase } from '@/lib/supabaseServer';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type Profile = {
-  full_name?: string | null;
-  name?: string | null;
-  age?: number | null;
-  height_cm?: number | null;
-  initial_weight_kg?: number | null;
-  current_weight_kg?: number | null;
-  initial_weight?: number | null;
-  current_weight?: number | null;
-  goal?: string | null;
-  level?: string | null;
-  fitness_level?: string | null;
-  training_frequency?: number | string | null;
-};
-
-type DailyProgress = {
-  completed?: boolean | null;
-  day_completed?: boolean | null;
-};
-
-type ProgressStage = {
-  stage_number?: number | null;
-  name?: string | null;
-  title?: string | null;
-  description?: string | null;
-  motivation?: string | null;
-  percentage?: number | null;
-};
-
-type UserMetric = {
-  weight_kg?: number | null;
-  measured_at?: string | null;
-  created_at?: string | null;
-};
+function getTodayInBrazil() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
+}
 
 function formatGoal(goal?: string | null) {
-  const labels: Record<string, string> = {
-    emagrecer: 'Emagrecimento',
-    ganhar_massa: 'Ganho de massa',
+  const goals: Record<string, string> = {
+    emagrecer: 'Emagrecer',
+    ganhar_massa: 'Ganhar massa',
     condicionamento: 'Condicionamento',
     vida_saudavel: 'Vida saudável',
   };
 
-  return goal ? labels[goal] ?? goal : 'Não informado';
+  if (!goal) return 'Não definido';
+
+  return goals[goal] ?? goal;
 }
 
-function formatNumber(value?: number | null, suffix = '') {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+function formatLevel(level?: string | null) {
+  const levels: Record<string, string> = {
+    iniciante: 'Iniciante',
+    intermediario: 'Intermediário',
+    avancado: 'Avançado',
+  };
+
+  if (!level) return 'Não definido';
+
+  return levels[level] ?? level;
+}
+
+function formatNumber(value?: number | null) {
+  if (value === null || value === undefined) {
     return '--';
   }
 
-  return `${Number(value).toLocaleString('pt-BR', {
-    maximumFractionDigits: 1,
-  })}${suffix}`;
+  return String(value).replace('.', ',');
 }
 
-function MetricCard({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-}: {
-  title: string;
-  value: string;
-  subtitle?: string;
-  icon: React.ElementType;
-}) {
-  return (
-    <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm md:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            {title}
-          </p>
-
-          <p className="mt-2 text-2xl font-black leading-none text-slate-950 md:text-3xl">
-            {value}
-          </p>
-
-          {subtitle && (
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              {subtitle}
-            </p>
-          )}
-        </div>
-
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-          <Icon size={20} />
-        </div>
-      </div>
-    </div>
+function getGreeting() {
+  const hour = Number(
+    new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      hour12: false,
+    }).format(new Date())
   );
+
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
 }
 
 export default async function DashboardPage() {
@@ -120,249 +83,391 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  const today = getTodayInBrazil();
 
-  if (!profileData) {
+  const [
+    { data: profile },
+    { data: latestMetric },
+    { data: todayProgress },
+    { count: completedDaysCount },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+
+    supabase
+      .from('user_metrics')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('measured_at', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+
+    supabase
+      .from('daily_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .maybeSingle(),
+
+    supabase
+      .from('daily_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('completed', true)
+      .lt('date', today),
+  ]);
+
+  if (!profile?.onboarding_completed) {
     redirect('/onboarding');
   }
 
-  const profile = profileData as Profile;
+  const fullName =
+    profile?.full_name ||
+    user.email?.split('@')[0] ||
+    'Aluno';
 
-  const { data: latestMetricData } = await supabase
-    .from('user_metrics')
-    .select('weight_kg, measured_at, created_at')
-    .eq('user_id', user.id)
-    .order('measured_at', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const latestMetric = latestMetricData as UserMetric | null;
-
-  const { data: progressData } = await supabase
-    .from('daily_progress')
-    .select('*')
-    .eq('user_id', user.id);
-
-  const completedDays = ((progressData ?? []) as DailyProgress[]).filter(
-    (item) => item.completed || item.day_completed
-  ).length;
-
-  const progressPercent = Math.min(Math.round((completedDays / 28) * 100), 100);
-  const currentStageNumber = Math.min(
-    Math.max(Math.ceil((progressPercent || 1) / 10), 1),
-    10
-  );
-
-  const { data: stageData } = await supabase
-    .from('progress_stages')
-    .select('*')
-    .eq('stage_number', currentStageNumber)
-    .maybeSingle();
-
-  const stage = stageData as ProgressStage | null;
-
-  const fullName = profile.full_name || profile.name || 'Aluno';
   const firstName = fullName.split(' ')[0];
 
   const initialWeight =
-    profile.initial_weight_kg ?? profile.initial_weight ?? null;
+    profile?.initial_weight_kg ??
+    profile?.current_weight_kg ??
+    profile?.current_weight ??
+    null;
 
   const currentWeight =
     latestMetric?.weight_kg ??
-    profile.current_weight_kg ??
-    profile.current_weight ??
+    profile?.current_weight_kg ??
+    profile?.current_weight ??
     initialWeight;
 
-  const height = profile.height_cm ?? null;
-  const age = profile.age ?? null;
-
-  const weightDiff =
-    initialWeight && currentWeight
+  const weightDifference =
+    currentWeight !== null &&
+    currentWeight !== undefined &&
+    initialWeight !== null &&
+    initialWeight !== undefined
       ? Number(currentWeight) - Number(initialWeight)
       : null;
+
+  const completedDays = completedDaysCount ?? 0;
+
+  const todayCompleted = Boolean(todayProgress?.completed);
+  const workoutDone = Boolean(todayProgress?.workout_done);
+  const mealsOk = Boolean(todayProgress?.meals_ok);
+  const habitDone = Boolean(todayProgress?.habit_done);
+
+  const todayScore =
+    [workoutDone, mealsOk, habitDone].filter(Boolean).length * 33 +
+    (todayCompleted ? 1 : 0);
 
   return (
     <AppShell>
       <div className="space-y-6 pb-10">
         <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="inline-flex rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide text-white">
-                Etapa {currentStageNumber} de 10
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
+                <Trophy size={16} />
+                Área de membro
               </span>
 
               <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-                Olá, {firstName}
+                {getGreeting()}, {firstName}
               </h1>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50 md:text-base">
-                Sua evolução é construída um dia por vez. Continue registrando
-                seus treinos, hábitos e progresso.
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
+                Sua jornada está em andamento. Continue evoluindo um dia de cada
+                vez, com treino, alimentação e disciplina.
               </p>
             </div>
 
-            <div className="rounded-3xl bg-white/15 p-4 backdrop-blur md:min-w-60">
-              <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                Progresso geral
+            <div className="rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
+                Hoje
               </p>
 
-              <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/20">
+              <p className="mt-2 text-3xl font-black">
+                {todayCompleted ? 'Concluído' : 'Em progresso'}
+              </p>
+
+              <p className="mt-1 text-sm text-emerald-50">
+                {todayCompleted
+                  ? 'Esse dia contará amanhã, após meia-noite.'
+                  : 'Complete sua rotina de hoje.'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Peso atual
+                </p>
+
+                <p className="mt-3 text-3xl font-black text-slate-950">
+                  {formatNumber(currentWeight)}
+                  <span className="ml-1 text-base text-slate-400">kg</span>
+                </p>
+
+                <p className="mt-2 text-sm font-medium text-slate-500">
+                  Inicial: {formatNumber(initialWeight)} kg
+                </p>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <Scale size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Evolução
+                </p>
+
+                <p className="mt-3 text-3xl font-black text-slate-950">
+                  {weightDifference === null
+                    ? '--'
+                    : `${weightDifference > 0 ? '+' : ''}${String(
+                        weightDifference.toFixed(1)
+                      ).replace('.', ',')}`}
+                  <span className="ml-1 text-base text-slate-400">kg</span>
+                </p>
+
+                <p className="mt-2 text-sm font-medium text-slate-500">
+                  Desde o início
+                </p>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                <TrendingUp size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Dias concluídos
+                </p>
+
+                <p className="mt-3 text-3xl font-black text-slate-950">
+                  {completedDays}
+                </p>
+
+                <p className="mt-2 text-sm font-medium text-slate-500">
+                  Meta: 28 dias
+                </p>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <CalendarCheck size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Progresso de hoje
+                </p>
+
+                <p className="mt-3 text-3xl font-black text-slate-950">
+                  {todayScore}
+                  <span className="ml-1 text-base text-slate-400">%</span>
+                </p>
+
+                <p className="mt-2 text-sm font-medium text-slate-500">
+                  Treino, alimentação e hábito
+                </p>
+              </div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <Activity size={24} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  Seu dia de hoje
+                </h2>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Complete sua rotina diária. O dia só entra em “Dias
+                  concluídos” depois da meia-noite.
+                </p>
+              </div>
+
+              <div className="hidden h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 md:flex">
+                <CheckCircle2 size={24} />
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              <div
+                className={`flex items-center gap-4 rounded-3xl border p-4 ${
+                  workoutDone
+                    ? 'border-emerald-200 bg-emerald-50'
+                    : 'border-slate-100 bg-slate-50'
+                }`}
+              >
                 <div
-                  className="h-full rounded-full bg-white"
-                  style={{ width: `${progressPercent}%` }}
-                />
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                    workoutDone
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white text-slate-400'
+                  }`}
+                >
+                  <Dumbbell size={23} />
+                </div>
+
+                <div>
+                  <p className="font-black text-slate-950">Treino do dia</p>
+                  <p className="text-sm text-slate-500">
+                    {workoutDone ? 'Marcado como feito' : 'Ainda pendente'}
+                  </p>
+                </div>
               </div>
 
-              <p className="mt-3 text-2xl font-black">{progressPercent}%</p>
+              <div
+                className={`flex items-center gap-4 rounded-3xl border p-4 ${
+                  mealsOk
+                    ? 'border-emerald-200 bg-emerald-50'
+                    : 'border-slate-100 bg-slate-50'
+                }`}
+              >
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                    mealsOk
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white text-slate-400'
+                  }`}
+                >
+                  <Apple size={23} />
+                </div>
+
+                <div>
+                  <p className="font-black text-slate-950">Alimentação</p>
+                  <p className="text-sm text-slate-500">
+                    {mealsOk ? 'Marcada como concluída' : 'Ainda pendente'}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center gap-4 rounded-3xl border p-4 ${
+                  habitDone
+                    ? 'border-emerald-200 bg-emerald-50'
+                    : 'border-slate-100 bg-slate-50'
+                }`}
+              >
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+                    habitDone
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white text-slate-400'
+                  }`}
+                >
+                  <HeartPulse size={23} />
+                </div>
+
+                <div>
+                  <p className="font-black text-slate-950">Hábito saudável</p>
+                  <p className="text-sm text-slate-500">
+                    {habitDone ? 'Marcado como feito' : 'Ainda pendente'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          <MetricCard
-            title="Peso inicial"
-            value={formatNumber(initialWeight, ' kg')}
-            subtitle="Ponto de partida"
-            icon={Scale}
-          />
-
-          <MetricCard
-            title="Peso atual"
-            value={formatNumber(currentWeight, ' kg')}
-            subtitle={
-              latestMetric?.weight_kg
-                ? 'Atualizado pelo progresso'
-                : weightDiff === null
-                  ? 'Aguardando dados'
-                  : weightDiff === 0
-                    ? 'Sem alteração'
-                    : `${weightDiff > 0 ? '+' : ''}${formatNumber(
-                        weightDiff,
-                        ' kg'
-                      )}`
-            }
-            icon={TrendingDown}
-          />
-
-          <MetricCard
-            title="Altura"
-            value={formatNumber(height, ' cm')}
-            subtitle={age ? `${age} anos` : 'Idade não informada'}
-            icon={HeartPulse}
-          />
-
-          <MetricCard
-            title="Dias concluídos"
-            value={`${completedDays}`}
-            subtitle="Meta: 28 dias"
-            icon={CalendarCheck}
-          />
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <Target size={22} />
-              </div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-slate-950">
+                Seu perfil
+              </h2>
 
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Etapa atual
-                </p>
-                <h2 className="text-xl font-black text-slate-950">
-                  {stage?.name || stage?.title || 'Começo da transformação'}
-                </h2>
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm leading-7 text-slate-600">
-              {stage?.description ||
-                'Você está criando a base da sua nova rotina. O foco agora é aparecer todos os dias e manter consistência.'}
-            </p>
-
-            <div className="mt-5 rounded-3xl bg-emerald-50 p-4">
-              <p className="text-sm font-bold text-emerald-800">
-                {stage?.motivation ||
-                  'Não procure perfeição. Procure continuidade. Cada dia concluído fortalece sua disciplina.'}
+              <p className="mt-2 text-sm text-slate-500">
+                Dados principais da sua jornada.
               </p>
             </div>
-          </div>
 
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-                <Flame size={22} />
+            <div className="space-y-3">
+              <div className="rounded-3xl bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <User size={21} />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                      Nome
+                    </p>
+                    <p className="font-black text-slate-950">{fullName}</p>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Objetivo principal
-                </p>
-                <h2 className="text-xl font-black text-slate-950">
-                  {formatGoal(profile.goal)}
-                </h2>
+              <div className="rounded-3xl bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <Target size={21} />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                      Objetivo
+                    </p>
+                    <p className="font-black text-slate-950">
+                      {formatGoal(profile?.goal)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <Flame size={21} />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                      Nível
+                    </p>
+                    <p className="font-black text-slate-950">
+                      {formatLevel(profile?.level)}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-3">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">
-                  Nível
-                </p>
-                <p className="mt-1 font-black capitalize text-slate-900">
-                  {profile.level || profile.fitness_level || 'Não informado'}
-                </p>
-              </div>
+            <div className="mt-6 rounded-[1.5rem] bg-gradient-to-br from-emerald-600 to-teal-500 p-5 text-white">
+              <p className="text-sm font-black">
+                Continue firme hoje.
+              </p>
 
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase text-slate-500">
-                  Frequência semanal
-                </p>
-                <p className="mt-1 font-black text-slate-900">
-                  {profile.training_frequency
-                    ? `${profile.training_frequency} treinos por semana`
-                    : 'Não informado'}
-                </p>
-              </div>
+              <p className="mt-2 text-sm leading-6 text-emerald-50">
+                Cada dia feito constrói sua transformação. A contagem oficial de
+                dias concluídos atualiza após virar o dia.
+              </p>
             </div>
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-            <Activity className="text-emerald-700" size={26} />
-            <h3 className="mt-4 text-lg font-black text-slate-950">
-              Meu Dia
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Registre treino, água, alimentação e hábitos saudáveis.
-            </p>
-          </div>
-
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-            <Dumbbell className="text-emerald-700" size={26} />
-            <h3 className="mt-4 text-lg font-black text-slate-950">
-              Treino da semana
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Siga o plano de exercícios e evolua com segurança.
-            </p>
-          </div>
-
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-            <Scale className="text-emerald-700" size={26} />
-            <h3 className="mt-4 text-lg font-black text-slate-950">
-              Comparativo
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Compare seu início com seus dados atuais e acompanhe sua jornada.
-            </p>
           </div>
         </section>
       </div>
