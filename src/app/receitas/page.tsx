@@ -1,50 +1,27 @@
 import { AppShell } from '@/components/AppShell';
 import { RecipesView } from '@/components/RecipesView';
 import { createServerSupabase } from '@/lib/supabaseServer';
-import type { Recipe } from '@/types/database';
 
-type RecipeRow = {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export type Recipe = {
   id: string;
-  name: string | null;
-  category: string | null;
-  ingredients: string[] | string | null;
-  preparation: string | null;
-  prep_time_minutes: number | null;
-  calories: number | null;
-  protein_g: number | null;
-  healthy_note: string | null;
-  image_url: string | null;
+  title?: string | null;
+  name?: string | null;
+  category?: string | null;
+  description?: string | null;
+  ingredients?: string[] | string | null;
+  instructions?: string[] | string | null;
+  calories?: number | null;
+  protein_g?: number | null;
+  carbs_g?: number | null;
+  fat_g?: number | null;
+  prep_time_minutes?: number | null;
+  difficulty?: string | null;
+  image_url?: string | null;
+  created_at?: string | null;
 };
-
-function normalizeIngredients(value: string[] | string | null): string[] {
-  if (Array.isArray(value)) return value;
-
-  if (typeof value === 'string' && value.trim().length > 0) {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
-function normalizeRecipe(recipe: RecipeRow): Recipe {
-  return {
-    id: recipe.id,
-    name: recipe.name ?? 'Receita saudável',
-    category: recipe.category ?? 'geral',
-    ingredients: normalizeIngredients(recipe.ingredients),
-    preparation: recipe.preparation ?? 'Modo de preparo não informado.',
-    prep_time_minutes: recipe.prep_time_minutes ?? 0,
-    calories: recipe.calories ?? 0,
-    protein_g: recipe.protein_g ?? 0,
-    healthy_note:
-      recipe.healthy_note ??
-      'Opção simples para manter uma rotina mais equilibrada.',
-    image_url: recipe.image_url ?? null,
-  };
-}
 
 export default async function ReceitasPage() {
   const supabase = createServerSupabase();
@@ -52,13 +29,15 @@ export default async function ReceitasPage() {
   const { data, error } = await supabase
     .from('recipes')
     .select('*')
-    .order('category', { ascending: true });
-
-  const recipes: Recipe[] = ((data ?? []) as RecipeRow[]).map(normalizeRecipe);
+    .order('category', { ascending: true })
+    .order('title', { ascending: true });
 
   return (
     <AppShell>
-      <RecipesView recipes={recipes} hasError={Boolean(error)} />
+      <RecipesView
+        recipes={(data ?? []) as Recipe[]}
+        hasError={Boolean(error)}
+      />
     </AppShell>
   );
 }
