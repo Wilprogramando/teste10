@@ -191,7 +191,7 @@ export default function HomePage() {
       </header>
 
       <section className="relative">
-        <div className="mx-auto grid min-h-[auto] max-w-7xl items-center gap-10 px-4 py-10 md:px-6 md:py-16 lg:min-h-[88vh] lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-10 md:px-6 md:py-16 lg:min-h-[88vh] lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300 md:text-xs">
               <Sparkles size={14} />
@@ -271,16 +271,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">
-                      foco
-                    </p>
-                    <p className="mt-2 text-lg font-black text-white">
-                      Emagrecimento
-                    </p>
-                  </div>
-
+                <div className="mt-5 grid gap-3">
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
                     <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">
                       nível
@@ -339,7 +330,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="beneficios" className="bg-white py-16 text-slate-950 md:py-24">
+      <section
+        id="beneficios"
+        className="bg-white py-16 text-slate-950 md:py-24"
+      >
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <SectionTitle
             eyebrow="benefícios"
@@ -356,7 +350,7 @@ export default function HomePage() {
                   key={item.title}
                   className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-orange-300 hover:shadow-xl md:p-6"
                 >
-                  <div className="flex h-13 w-13 h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 to-orange-400 text-[#07111d] shadow-lg shadow-orange-200/40">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 to-orange-400 text-[#07111d] shadow-lg shadow-orange-200/40">
                     <Icon size={26} />
                   </div>
 
@@ -464,7 +458,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="como-funciona" className="bg-white py-16 text-slate-950 md:py-24">
+      <section
+        id="como-funciona"
+        className="bg-white py-16 text-slate-950 md:py-24"
+      >
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <SectionTitle
             eyebrow="como funciona"
@@ -472,7 +469,7 @@ export default function HomePage() {
             text="Sem complicação. Você entra, aplica e evolui."
           />
 
-          <div className="mt-10 grid gap-4 md:mt-14 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 md:mt-14 lg:grid-cols-4">
             {timeline.map((item) => (
               <div
                 key={item.step}
@@ -528,7 +525,11 @@ export default function HomePage() {
 
                 <div className="mt-5 flex gap-1 text-orange-400">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={`${item.name}-${i}`} size={18} fill="currentColor" />
+                    <Star
+                      key={`${item.name}-${i}`}
+                      size={18}
+                      fill="currentColor"
+                    />
                   ))}
                 </div>
 
@@ -654,10 +655,7 @@ export default function HomePage() {
 
           <div className="flex flex-wrap gap-4 text-sm text-slate-400 md:gap-6">
             <a href="#" className="transition hover:text-white">
-              Instagram
-            </a>
-            <a href="#" className="transition hover:text-white">
-              Facebook
+              TikTok
             </a>
             <a href="#" className="transition hover:text-white">
               Termos
