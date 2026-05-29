@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import {
-  Activity,
   Apple,
   CalendarCheck,
   CheckCircle2,
@@ -125,10 +124,7 @@ export default async function DashboardPage() {
     redirect('/onboarding');
   }
 
-  const fullName =
-    profile?.full_name ||
-    user.email?.split('@')[0] ||
-    'Aluno';
+  const fullName = profile?.full_name || user.email?.split('@')[0] || 'Aluno';
 
   const firstName = fullName.split(' ')[0];
 
@@ -154,55 +150,32 @@ export default async function DashboardPage() {
 
   const completedDays = completedDaysCount ?? 0;
 
-  const todayCompleted = Boolean(todayProgress?.completed);
   const workoutDone = Boolean(todayProgress?.workout_done);
   const mealsOk = Boolean(todayProgress?.meals_ok);
   const habitDone = Boolean(todayProgress?.habit_done);
-
-  const todayScore =
-    [workoutDone, mealsOk, habitDone].filter(Boolean).length * 33 +
-    (todayCompleted ? 1 : 0);
 
   return (
     <AppShell>
       <div className="space-y-6 pb-10">
         <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
-                <Trophy size={16} />
-                Área de membro
-              </span>
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
+              <Trophy size={16} />
+              Área de membro
+            </span>
 
-              <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-                {getGreeting()}, {firstName}
-              </h1>
+            <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
+              {getGreeting()}, {firstName}
+            </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-                Sua jornada está em andamento. Continue evoluindo um dia de cada
-                vez, com treino, alimentação e disciplina.
-              </p>
-            </div>
-
-            <div className="rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
-                Hoje
-              </p>
-
-              <p className="mt-2 text-3xl font-black">
-                {todayCompleted ? 'Concluído' : 'Em progresso'}
-              </p>
-
-              <p className="mt-1 text-sm text-emerald-50">
-                {todayCompleted
-                  ? 'Esse dia contará amanhã, após meia-noite.'
-                  : 'Complete sua rotina de hoje.'}
-              </p>
-            </div>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
+              Sua jornada está em andamento. Continue evoluindo um dia de cada
+              vez, com treino, alimentação e disciplina.
+            </p>
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -274,29 +247,6 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                  Progresso de hoje
-                </p>
-
-                <p className="mt-3 text-3xl font-black text-slate-950">
-                  {todayScore}
-                  <span className="ml-1 text-base text-slate-400">%</span>
-                </p>
-
-                <p className="mt-2 text-sm font-medium text-slate-500">
-                  Treino, alimentação e hábito
-                </p>
-              </div>
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <Activity size={24} />
-              </div>
-            </div>
-          </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -304,12 +254,12 @@ export default async function DashboardPage() {
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black text-slate-950">
-                  Seu dia de hoje
+                  Sua rotina de hoje
                 </h2>
 
                 <p className="mt-2 text-sm text-slate-500">
-                  Complete sua rotina diária. O dia só entra em “Dias
-                  concluídos” depois da meia-noite.
+                  Complete treino, alimentação e hábito saudável. O dia só entra
+                  em “Dias concluídos” depois da meia-noite.
                 </p>
               </div>
 
@@ -459,9 +409,7 @@ export default async function DashboardPage() {
             </div>
 
             <div className="mt-6 rounded-[1.5rem] bg-gradient-to-br from-emerald-600 to-teal-500 p-5 text-white">
-              <p className="text-sm font-black">
-                Continue firme hoje.
-              </p>
+              <p className="text-sm font-black">Continue firme hoje.</p>
 
               <p className="mt-2 text-sm leading-6 text-emerald-50">
                 Cada dia feito constrói sua transformação. A contagem oficial de
