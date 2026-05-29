@@ -142,7 +142,7 @@ function DesktopMenu({ onLogout }: { onLogout: () => void }) {
           </h2>
 
           <p className="mt-1 text-sm font-medium text-emerald-50">
-            Área do aluno
+            Área de membro
           </p>
         </div>
 
@@ -255,7 +255,7 @@ function MobileMenu({
               </h2>
 
               <p className="mt-1 text-sm font-medium text-emerald-50">
-                Escolha uma área para continuar.
+                Área de membro
               </p>
             </div>
 
