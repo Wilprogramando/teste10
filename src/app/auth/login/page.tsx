@@ -203,8 +203,8 @@ export default function AuthLoginPage() {
 
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Entre para a <strong>Jornada Seu Ademir</strong> e tenha acesso a
-              uma experiência pensada para disciplina, treino, evolução e mudança
-              real de vida.
+              uma experiência pensada para disciplina, treino, evolução e
+              mudança real de vida.
             </p>
 
             <div className="mt-8 grid gap-4">
@@ -272,7 +272,7 @@ export default function AuthLoginPage() {
                 {successRegistered
                   ? 'Cadastro concluído'
                   : mode === 'signup'
-                    ? 'Criar conta'
+                    ? 'Criar conta nova'
                     : 'Entrar na plataforma'}
               </h2>
 
@@ -280,28 +280,40 @@ export default function AuthLoginPage() {
                 {successRegistered
                   ? 'Sua conta foi criada. Agora clique em “Entrar e pagar”.'
                   : mode === 'signup'
-                    ? 'Crie sua conta para começar sua jornada.'
-                    : 'Entre com seu e-mail e senha para acessar sua área.'}
+                    ? 'Para quem ainda não tem cadastro e quer começar agora.'
+                    : 'Para quem já se cadastrou antes e quer acessar sua área.'}
               </p>
             </div>
 
             <div className="p-6 md:p-8">
               {!successRegistered ? (
                 <>
-                  <div className="mb-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => {
                         setMode('signup');
                         setMessage('');
                       }}
-                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${
                         mode === 'signup'
-                          ? 'bg-white text-emerald-700 shadow-sm'
-                          : 'text-slate-500'
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                          : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100'
                       }`}
                     >
-                      Criar conta
+                      <div className="text-base font-black">
+                        CRIAR CONTA NOVA
+                      </div>
+
+                      <div
+                        className={`mt-1 text-xs leading-5 ${
+                          mode === 'signup'
+                            ? 'text-emerald-50'
+                            : 'text-emerald-700'
+                        }`}
+                      >
+                        Para quem ainda não tem cadastro e vai começar agora.
+                      </div>
                     </button>
 
                     <button
@@ -310,13 +322,21 @@ export default function AuthLoginPage() {
                         setMode('login');
                         setMessage('');
                       }}
-                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${
                         mode === 'login'
-                          ? 'bg-white text-emerald-700 shadow-sm'
-                          : 'text-slate-500'
+                          ? 'border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-200'
+                          : 'border-slate-300 bg-slate-50 text-slate-800 hover:border-slate-500 hover:bg-slate-100'
                       }`}
                     >
-                      Já tenho conta
+                      <div className="text-base font-black">JÁ TENHO CONTA</div>
+
+                      <div
+                        className={`mt-1 text-xs leading-5 ${
+                          mode === 'login' ? 'text-slate-200' : 'text-slate-600'
+                        }`}
+                      >
+                        Para quem já se cadastrou antes e só quer entrar.
+                      </div>
                     </button>
                   </div>
 
@@ -373,13 +393,17 @@ export default function AuthLoginPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full rounded-2xl border-2 border-slate-950 bg-emerald-600 px-5 py-4 text-base font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+                      className={`w-full rounded-2xl border-2 px-5 py-4 text-base font-black text-white transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                        mode === 'signup'
+                          ? 'border-emerald-900 bg-emerald-600 hover:bg-emerald-700'
+                          : 'border-slate-950 bg-slate-950 hover:bg-slate-800'
+                      }`}
                     >
                       {loading
                         ? 'Aguarde...'
                         : mode === 'signup'
-                          ? 'Cadastrar'
-                          : 'Entrar'}
+                          ? 'Cadastrar conta nova'
+                          : 'Entrar na minha conta'}
                     </button>
                   </form>
 
@@ -389,6 +413,14 @@ export default function AuthLoginPage() {
                         <strong>Atenção:</strong> o pagamento será cobrado
                         somente após você entrar com seu usuário e senha pela
                         primeira vez.
+                      </p>
+                    </div>
+                  )}
+
+                  {mode === 'login' && (
+                    <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm leading-6 text-slate-700">
+                        Use esta opção somente se você já criou sua conta antes.
                       </p>
                     </div>
                   )}
