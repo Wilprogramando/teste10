@@ -631,7 +631,8 @@ export default function ProgressoPage() {
                       </h2>
 
                       <p className="mt-1 text-sm text-slate-500">
-                        Visualização limitada até {MAX_CHART_WEIGHT} kg.
+                        Peso em kg. Visualização limitada até{' '}
+                        {MAX_CHART_WEIGHT} kg.
                       </p>
                     </div>
                   </div>
@@ -640,15 +641,15 @@ export default function ProgressoPage() {
 
               {chartData.length > 0 ? (
                 <>
-                  <div className="h-[300px] w-full md:h-[360px]">
+                  <div className="h-[300px] w-full overflow-hidden md:h-[360px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={chartData}
                         margin={{
-                          top: 12,
-                          right: 16,
-                          left: -18,
-                          bottom: 8,
+                          top: 20,
+                          right: 20,
+                          left: 10,
+                          bottom: 16,
                         }}
                       >
                         <CartesianGrid
@@ -671,8 +672,8 @@ export default function ProgressoPage() {
                           tick={{ fontSize: 12, fill: '#64748b' }}
                           tickLine={false}
                           axisLine={false}
-                          width={42}
-                          unit="kg"
+                          width={52}
+                          tickFormatter={(value) => `${value}`}
                         />
 
                         <Tooltip
