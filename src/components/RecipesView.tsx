@@ -1,67 +1,374 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ChefHat, Coffee, Drumstick, Moon, Search, Sparkles, Utensils } from 'lucide-react';
-import { RecipeCard } from '@/components/RecipeCard';
-import type { Recipe } from '@/types/database';
+import {
+  ChefHat,
+  Clock3,
+  Coffee,
+  Flame,
+  Moon,
+  Search,
+  Sandwich,
+  Sparkles,
+  Utensils,
+} from 'lucide-react';
+import type { Recipe } from '@/app/receitas/page';
 
-const categoryOrder = [
-  'café da manhã',
-  'cafe',
-  'almoço',
-  'almoco',
-  'lanche',
-  'jantar',
-  'pré-treino',
-  'pre_treino',
-  'geral',
+type Category = {
+  key: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+};
+
+const categories: Category[] = [
+  {
+    key: 'cafe_da_manha',
+    label: 'Café Da Manhã',
+    description: 'Opções leves para começar o dia.',
+    icon: Coffee,
+  },
+  {
+    key: 'almoco',
+    label: 'Almoço',
+    description: 'Refeições completas e equilibradas.',
+    icon: Utensils,
+  },
+  {
+    key: 'lanche',
+    label: 'Lanche',
+    description: 'Receitas rápidas para o intervalo.',
+    icon: Sandwich,
+  },
+  {
+    key: 'jantar',
+    label: 'Jantar',
+    description: 'Opções práticas para fechar o dia.',
+    icon: Moon,
+  },
+  {
+    key: 'pre_treino',
+    label: 'Pré-Treino',
+    description: 'Energia antes do treino.',
+    icon: Sparkles,
+  },
 ];
 
-function normalizeCategory(category: string) {
-  const value = category.toLowerCase().trim();
+const fallbackRecipes: Recipe[] = [
+  {
+    id: 'fallback-1',
+    title: 'Iogurte com frutas e granola',
+    category: 'Café Da Manhã',
+    description: 'Uma opção rápida, leve e nutritiva para começar o dia.',
+    calories: 280,
+    protein_g: 14,
+    carbs_g: 38,
+    fat_g: 8,
+    prep_time_minutes: 5,
+    ingredients: [
+      '1 pote de iogurte natural',
+      '1 banana picada',
+      '1 colher de granola',
+      'Canela a gosto',
+    ],
+    instructions: [
+      'Coloque o iogurte em uma tigela.',
+      'Adicione a banana picada.',
+      'Finalize com granola e canela.',
+    ],
+  },
+  {
+    id: 'fallback-2',
+    title: 'Tapioca com ovo mexido',
+    category: 'Café Da Manhã',
+    description: 'Boa fonte de energia e proteína para o início do dia.',
+    calories: 310,
+    protein_g: 18,
+    carbs_g: 34,
+    fat_g: 11,
+    prep_time_minutes: 10,
+    ingredients: ['2 colheres de goma de tapioca', '2 ovos', 'Sal a gosto'],
+    instructions: [
+      'Prepare a tapioca na frigideira.',
+      'Mexa os ovos separadamente.',
+      'Recheie a tapioca com os ovos.',
+    ],
+  },
+  {
+    id: 'fallback-3',
+    title: 'Frango grelhado com arroz e salada',
+    category: 'Almoço',
+    description: 'Refeição clássica, simples e eficiente.',
+    calories: 520,
+    protein_g: 42,
+    carbs_g: 55,
+    fat_g: 13,
+    prep_time_minutes: 25,
+    ingredients: [
+      '150g de frango',
+      '3 colheres de arroz',
+      'Salada verde',
+      'Azeite e temperos',
+    ],
+    instructions: [
+      'Grelhe o frango temperado.',
+      'Monte o prato com arroz e salada.',
+      'Finalize com azeite moderado.',
+    ],
+  },
+  {
+    id: 'fallback-4',
+    title: 'Sanduíche natural de frango',
+    category: 'Lanche',
+    description: 'Lanche prático para manter a rotina.',
+    calories: 350,
+    protein_g: 26,
+    carbs_g: 36,
+    fat_g: 10,
+    prep_time_minutes: 12,
+    ingredients: [
+      '2 fatias de pão integral',
+      'Frango desfiado',
+      'Cenoura ralada',
+      'Iogurte natural',
+    ],
+    instructions: [
+      'Misture o frango com cenoura e iogurte.',
+      'Monte no pão integral.',
+      'Sirva em seguida.',
+    ],
+  },
+  {
+    id: 'fallback-5',
+    title: 'Omelete com legumes',
+    category: 'Jantar',
+    description: 'Jantar leve, proteico e fácil de preparar.',
+    calories: 290,
+    protein_g: 22,
+    carbs_g: 10,
+    fat_g: 18,
+    prep_time_minutes: 12,
+    ingredients: ['3 ovos', 'Tomate', 'Cebola', 'Espinafre', 'Sal a gosto'],
+    instructions: [
+      'Bata os ovos.',
+      'Misture os legumes picados.',
+      'Leve à frigideira até firmar.',
+    ],
+  },
+  {
+    id: 'fallback-6',
+    title: 'Banana com aveia e pasta de amendoim',
+    category: 'Pré-Treino',
+    description: 'Energia rápida para treinar melhor.',
+    calories: 330,
+    protein_g: 10,
+    carbs_g: 48,
+    fat_g: 12,
+    prep_time_minutes: 5,
+    ingredients: [
+      '1 banana',
+      '2 colheres de aveia',
+      '1 colher de pasta de amendoim',
+    ],
+    instructions: [
+      'Corte a banana.',
+      'Adicione aveia.',
+      'Finalize com pasta de amendoim.',
+    ],
+  },
+];
 
-  const map: Record<string, string> = {
-    cafe: 'café da manhã',
-    'café': 'café da manhã',
-    'cafe da manha': 'café da manhã',
-    'café da manhã': 'café da manhã',
-    almoco: 'almoço',
-    almoço: 'almoço',
-    lanche: 'lanche',
-    jantar: 'jantar',
-    'pré-treino': 'pré-treino',
-    'pre-treino': 'pré-treino',
-    pre_treino: 'pré-treino',
-    geral: 'geral',
-  };
-
-  return map[value] ?? value;
+function normalizeText(value?: string | null) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/-/g, ' ')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ');
 }
 
-function categoryLabel(category: string) {
-  const labels: Record<string, string> = {
-    'café da manhã': 'Café da manhã',
-    almoço: 'Almoço',
-    lanche: 'Lanche',
-    jantar: 'Jantar',
-    'pré-treino': 'Pré-treino',
-    geral: 'Geral',
-  };
+function getCategoryKey(category?: string | null) {
+  const normalized = normalizeText(category);
 
-  return labels[category] ?? category;
+  if (
+    normalized.includes('cafe') ||
+    normalized.includes('manha') ||
+    normalized.includes('cafe da manha')
+  ) {
+    return 'cafe_da_manha';
+  }
+
+  if (normalized.includes('almoco')) {
+    return 'almoco';
+  }
+
+  if (normalized.includes('lanche')) {
+    return 'lanche';
+  }
+
+  if (normalized.includes('jantar')) {
+    return 'jantar';
+  }
+
+  if (
+    normalized.includes('pre treino') ||
+    normalized.includes('pretreino') ||
+    normalized.includes('pré treino') ||
+    normalized.includes('pré-treino')
+  ) {
+    return 'pre_treino';
+  }
+
+  return 'almoco';
 }
 
-function categoryIcon(category: string) {
-  const icons: Record<string, React.ElementType> = {
-    'café da manhã': Coffee,
-    almoço: Drumstick,
-    lanche: Utensils,
-    jantar: Moon,
-    'pré-treino': Sparkles,
-    geral: ChefHat,
-  };
+function getCategoryByRecipe(recipe: Recipe) {
+  const key = getCategoryKey(recipe.category);
+  return categories.find((category) => category.key === key) ?? categories[1];
+}
 
-  return icons[category] ?? ChefHat;
+function parseList(value?: string[] | string | null) {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getRecipeTitle(recipe: Recipe) {
+  return recipe.title || recipe.name || 'Receita sem título';
+}
+
+function RecipeCard({ recipe }: { recipe: Recipe }) {
+  const recipeCategory = getCategoryByRecipe(recipe);
+  const RecipeIcon = recipeCategory.icon;
+
+  const ingredients = parseList(recipe.ingredients);
+  const instructions = parseList(recipe.instructions);
+
+  return (
+    <article className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
+        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+          {recipeCategory.label}
+        </span>
+
+        <div className="absolute right-5 top-8 flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-white text-emerald-700 shadow-sm">
+          <RecipeIcon size={36} />
+        </div>
+
+        <div className="pt-20">
+          <h3 className="text-xl font-black leading-tight text-slate-950">
+            {getRecipeTitle(recipe)}
+          </h3>
+
+          {recipe.description && (
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {recipe.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="p-5">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-slate-50 p-3">
+            <div className="flex items-center gap-2 text-slate-500">
+              <Flame size={16} />
+              <span className="text-xs font-black uppercase">Calorias</span>
+            </div>
+
+            <p className="mt-2 text-lg font-black text-slate-950">
+              {recipe.calories ?? '--'} kcal
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-slate-50 p-3">
+            <div className="flex items-center gap-2 text-slate-500">
+              <Clock3 size={16} />
+              <span className="text-xs font-black uppercase">Tempo</span>
+            </div>
+
+            <p className="mt-2 text-lg font-black text-slate-950">
+              {recipe.prep_time_minutes ?? '--'} min
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-2xl bg-emerald-50 p-3 text-center">
+            <p className="text-xs font-bold text-emerald-700">Proteína</p>
+            <p className="mt-1 text-sm font-black text-slate-950">
+              {recipe.protein_g ?? '--'}g
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-orange-50 p-3 text-center">
+            <p className="text-xs font-bold text-orange-700">Carbo</p>
+            <p className="mt-1 text-sm font-black text-slate-950">
+              {recipe.carbs_g ?? '--'}g
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-blue-50 p-3 text-center">
+            <p className="text-xs font-bold text-blue-700">Gordura</p>
+            <p className="mt-1 text-sm font-black text-slate-950">
+              {recipe.fat_g ?? '--'}g
+            </p>
+          </div>
+        </div>
+
+        {ingredients.length > 0 && (
+          <div className="mt-5">
+            <h4 className="text-sm font-black text-slate-950">
+              Ingredientes
+            </h4>
+
+            <ul className="mt-3 space-y-2">
+              {ingredients.slice(0, 5).map((ingredient, index) => (
+                <li
+                  key={`${recipe.id}-ingredient-${index}`}
+                  className="flex gap-2 text-sm leading-6 text-slate-600"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                  {ingredient}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {instructions.length > 0 && (
+          <div className="mt-5 rounded-3xl bg-slate-50 p-4">
+            <h4 className="text-sm font-black text-slate-950">
+              Modo de preparo
+            </h4>
+
+            <ol className="mt-3 space-y-2">
+              {instructions.slice(0, 4).map((instruction, index) => (
+                <li
+                  key={`${recipe.id}-instruction-${index}`}
+                  className="flex gap-2 text-sm leading-6 text-slate-600"
+                >
+                  <span className="font-black text-emerald-700">
+                    {index + 1}.
+                  </span>
+                  {instruction}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+    </article>
+  );
 }
 
 export function RecipesView({
@@ -69,39 +376,32 @@ export function RecipesView({
   hasError,
 }: {
   recipes: Recipe[];
-  hasError: boolean;
+  hasError?: boolean;
 }) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const allRecipes = recipes.length > 0 ? recipes : fallbackRecipes;
 
-  const normalizedRecipes = useMemo(
-    () =>
-      recipes.map((recipe) => ({
-        ...recipe,
-        category: normalizeCategory(recipe.category),
-      })),
-    [recipes]
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    categories[0].key
   );
 
-  const categories = useMemo(() => {
-    const unique = Array.from(
-      new Set(normalizedRecipes.map((recipe) => recipe.category))
+  const selectedCategoryData =
+    categories.find((category) => category.key === selectedCategory) ??
+    categories[0];
+
+  const selectedRecipes = useMemo(() => {
+    return allRecipes.filter(
+      (recipe) => getCategoryByRecipe(recipe).key === selectedCategory
     );
+  }, [allRecipes, selectedCategory]);
 
-    return unique.sort((a, b) => {
-      const indexA = categoryOrder.indexOf(a);
-      const indexB = categoryOrder.indexOf(b);
+  const totalRecipes = allRecipes.length;
+  const SelectedIcon = selectedCategoryData.icon;
 
-      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-
-      return indexA - indexB;
-    });
-  }, [normalizedRecipes]);
-
-  const filteredRecipes = selectedCategory
-    ? normalizedRecipes.filter((recipe) => recipe.category === selectedCategory)
-    : [];
+  function getCategoryCount(categoryKey: string) {
+    return allRecipes.filter(
+      (recipe) => getCategoryByRecipe(recipe).key === categoryKey
+    ).length;
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -112,77 +412,81 @@ export function RecipesView({
         </span>
 
         <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-          Escolha sua refeição.
+          Escolha sua refeição
         </h1>
 
         <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-          Primeiro selecione o tipo de refeição que deseja preparar. Depois o
-          sistema mostra apenas as opções daquela categoria.
+          Toque em uma categoria para liberar as receitas daquela refeição.
         </p>
 
-        <div className="mt-6 rounded-3xl bg-white/15 p-4 backdrop-blur">
-          <p className="text-xs font-bold uppercase tracking-wide text-emerald-50">
+        <div className="mt-7 rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
+          <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
             Total de receitas cadastradas
           </p>
-          <p className="mt-2 text-4xl font-black">{recipes.length}</p>
+
+          <p className="mt-3 text-4xl font-black text-white">{totalRecipes}</p>
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-            <Search size={22} />
+      {hasError && (
+        <div className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-800">
+          Não foi possível carregar as receitas do banco agora. Mostrando opções
+          padrão para manter a experiência funcionando.
+        </div>
+      )}
+
+      <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+        <div className="mb-5 flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <Search size={23} />
           </div>
 
           <div>
-            <h2 className="text-lg font-black text-slate-950">
+            <h2 className="text-xl font-black text-slate-950">
               Qual refeição você quer fazer?
             </h2>
-            <p className="text-sm text-slate-500">
+
+            <p className="mt-1 text-sm text-slate-500">
               Toque em uma categoria para liberar as receitas.
             </p>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {categories.map((category) => {
-            const Icon = categoryIcon(category);
-            const isActive = selectedCategory === category;
-            const total = normalizedRecipes.filter(
-              (recipe) => recipe.category === category
-            ).length;
+            const Icon = category.icon;
+            const active = selectedCategory === category.key;
+            const count = getCategoryCount(category.key);
 
             return (
               <button
-                key={category}
+                key={category.key}
                 type="button"
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => setSelectedCategory(category.key)}
                 className={`rounded-3xl border p-4 text-left transition ${
-                  isActive
-                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                  active
+                    ? 'border-slate-950 bg-emerald-700 text-white shadow-lg shadow-emerald-100'
                     : 'border-slate-100 bg-slate-50 text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
                 }`}
               >
                 <div
                   className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-                    isActive
+                    active
                       ? 'bg-white/20 text-white'
                       : 'bg-white text-emerald-700'
                   }`}
                 >
-                  <Icon size={21} />
+                  <Icon size={22} />
                 </div>
 
-                <p className="mt-3 text-sm font-black capitalize">
-                  {categoryLabel(category)}
-                </p>
+                <p className="mt-4 text-base font-black">{category.label}</p>
 
                 <p
-                  className={`mt-1 text-xs ${
-                    isActive ? 'text-emerald-50' : 'text-slate-500'
+                  className={`mt-1 text-sm ${
+                    active ? 'text-emerald-50' : 'text-slate-500'
                   }`}
                 >
-                  {total} opções
+                  {count} opções
                 </p>
               </button>
             );
@@ -190,65 +494,62 @@ export function RecipesView({
         </div>
       </section>
 
-      {hasError && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-          Não foi possível carregar as receitas agora.
-        </div>
-      )}
+      <section>
+        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+              Categoria selecionada
+            </p>
 
-      {!selectedCategory && (
-        <div className="rounded-[2rem] border border-dashed border-emerald-200 bg-emerald-50/70 p-8 text-center">
-          <ChefHat className="mx-auto text-emerald-700" size={40} />
-          <h2 className="mt-4 text-xl font-black text-slate-950">
-            Escolha uma refeição acima
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            As receitas ficam ocultas até você selecionar café da manhã, almoço,
-            lanche, jantar ou pré-treino.
-          </p>
-        </div>
-      )}
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <SelectedIcon size={24} />
+              </div>
 
-      {selectedCategory && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
-                Categoria selecionada
-              </p>
-              <h2 className="text-2xl font-black capitalize text-slate-950">
-                {categoryLabel(selectedCategory)}
-              </h2>
+              <div>
+                <h2 className="text-3xl font-black text-slate-950">
+                  {selectedCategoryData.label}
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {selectedCategoryData.description}
+                </p>
+              </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory(null)}
-              className="rounded-full bg-slate-100 px-4 py-2 text-xs font-black text-slate-600"
-            >
-              Trocar
-            </button>
           </div>
 
-          {filteredRecipes.length === 0 ? (
-            <div className="rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm">
-              <Sparkles className="mx-auto text-emerald-700" size={36} />
-              <h2 className="mt-4 text-xl font-black text-slate-950">
-                Nenhuma receita nesta categoria
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Escolha outra refeição ou cadastre novas receitas no Supabase.
-              </p>
+          <button
+            type="button"
+            onClick={() => setSelectedCategory(categories[0].key)}
+            className="w-fit rounded-full bg-slate-100 px-5 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-200"
+          >
+            Trocar
+          </button>
+        </div>
+
+        {selectedRecipes.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {selectedRecipes.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-700">
+              <SelectedIcon size={30} />
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredRecipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+
+            <h3 className="mt-5 text-2xl font-black text-slate-950">
+              Nenhuma receita nessa categoria
+            </h3>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Cadastre receitas para {selectedCategoryData.label} no banco de
+              dados ou escolha outra refeição.
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
