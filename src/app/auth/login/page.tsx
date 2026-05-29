@@ -2,11 +2,40 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, CreditCard, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  CheckCircle2,
+  CreditCard,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 
 type Mode = 'signup' | 'login';
+
+function getFriendlyError(message: string) {
+  const lower = message.toLowerCase();
+
+  if (lower.includes('invalid login credentials')) {
+    return 'E-mail ou senha incorretos.';
+  }
+
+  if (lower.includes('email not confirmed')) {
+    return 'Seu e-mail ainda não foi confirmado. Para teste, desative a confirmação de e-mail no Supabase.';
+  }
+
+  if (lower.includes('user already registered')) {
+    return 'Este e-mail já possui cadastro. Clique em “Já tenho conta”.';
+  }
+
+  if (lower.includes('password')) {
+    return 'Verifique sua senha. Ela precisa ter pelo menos 6 caracteres.';
+  }
+
+  return message || 'Não foi possível concluir sua solicitação agora.';
+}
 
 export default function AuthLoginPage() {
   const supabase = createClient();
@@ -25,7 +54,9 @@ export default function AuthLoginPage() {
     event.preventDefault();
     setMessage('');
 
-    if (!email || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
       setMessage('Informe e-mail e senha.');
       return;
     }
@@ -52,7 +83,7 @@ export default function AuthLoginPage() {
     try {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
         });
 
@@ -61,12 +92,12 @@ export default function AuthLoginPage() {
         }
 
         setSuccessRegistered(true);
-        setMessage('Cadastro realizado com sucesso.');
+        setMessage('');
         return;
       }
 
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: cleanEmail,
         password,
       });
 
@@ -77,9 +108,7 @@ export default function AuthLoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
-      const errorMessage =
-        error?.message || 'Não foi possível concluir sua solicitação agora.';
-      setMessage(errorMessage);
+      setMessage(getFriendlyError(error?.message));
     } finally {
       setLoading(false);
     }
@@ -91,7 +120,7 @@ export default function AuthLoginPage() {
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
@@ -102,10 +131,7 @@ export default function AuthLoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
-      const errorMessage =
-        error?.message ||
-        'Seu cadastro foi criado, mas não foi possível entrar automaticamente.';
-      setMessage(errorMessage);
+      setMessage(getFriendlyError(error?.message));
       setSuccessRegistered(false);
       setMode('login');
     } finally {
@@ -136,7 +162,7 @@ export default function AuthLoginPage() {
             <div className="mt-8 grid gap-4">
               <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
                 <p className="text-sm font-black text-slate-950">
-                  ✅ Acesso ao sistema completo
+                  Acesso ao sistema completo
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   Painel com treinos, alimentação, progresso e rotina diária.
@@ -145,23 +171,25 @@ export default function AuthLoginPage() {
 
               <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
                 <p className="text-sm font-black text-slate-950">
-                  ✅ Método simples e direto
+                  Método simples e direto
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Sem complicação: você cria a conta, entra e começa sua jornada.
+                  Crie sua conta, entre na plataforma e comece sua jornada.
                 </p>
               </div>
 
               <div className="rounded-[2rem] border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
                 <div className="flex items-start gap-3">
                   <CreditCard className="mt-0.5 text-emerald-700" size={20} />
+
                   <div>
                     <p className="text-sm font-black text-emerald-800">
                       Informação importante sobre o pagamento
                     </p>
                     <p className="mt-2 text-sm leading-6 text-emerald-700">
-                      O pagamento será cobrado <strong>após o seu primeiro acesso</strong>,
-                      quando você entrar com seu usuário e senha pela primeira vez.
+                      O pagamento será cobrado{' '}
+                      <strong>após o seu primeiro acesso</strong>, quando você
+                      entrar com seu usuário e senha pela primeira vez.
                     </p>
                   </div>
                 </div>
@@ -176,19 +204,21 @@ export default function AuthLoginPage() {
               <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-50">
                 Jornada Seu Ademir
               </p>
+
               <h2 className="mt-2 text-3xl font-black">
                 {successRegistered
                   ? 'Cadastro concluído'
                   : mode === 'signup'
-                  ? 'Criar conta'
-                  : 'Entrar na plataforma'}
+                    ? 'Criar conta'
+                    : 'Entrar na plataforma'}
               </h2>
+
               <p className="mt-2 text-sm leading-6 text-emerald-50">
                 {successRegistered
-                  ? 'Sua conta foi criada com sucesso. Agora você já pode acessar e seguir para o primeiro pagamento.'
+                  ? 'Sua conta foi criada com sucesso. Agora você pode entrar e seguir para o primeiro acesso.'
                   : mode === 'signup'
-                  ? 'Crie sua conta para começar sua jornada.'
-                  : 'Entre com seu e-mail e senha para acessar sua área.'}
+                    ? 'Crie sua conta para começar sua jornada.'
+                    : 'Entre com seu e-mail e senha para acessar sua área.'}
               </p>
             </div>
 
@@ -233,11 +263,12 @@ export default function AuthLoginPage() {
                         size={18}
                         className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                       />
+
                       <input
                         type="email"
                         placeholder="E-mail"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(event) => setEmail(event.target.value)}
                         className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
                       />
                     </div>
@@ -247,11 +278,12 @@ export default function AuthLoginPage() {
                         size={18}
                         className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                       />
+
                       <input
                         type="password"
                         placeholder="Senha"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(event) => setPassword(event.target.value)}
                         className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
                       />
                     </div>
@@ -262,11 +294,14 @@ export default function AuthLoginPage() {
                           size={18}
                           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                         />
+
                         <input
                           type="password"
                           placeholder="Confirmar senha"
                           value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          onChange={(event) =>
+                            setConfirmPassword(event.target.value)
+                          }
                           className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
                         />
                       </div>
@@ -280,28 +315,18 @@ export default function AuthLoginPage() {
                       {loading
                         ? 'Aguarde...'
                         : mode === 'signup'
-                        ? 'Cadastrar'
-                        : 'Entrar'}
+                          ? 'Cadastrar'
+                          : 'Entrar'}
                     </button>
                   </form>
 
                   {mode === 'signup' && (
                     <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                       <p className="text-sm leading-6 text-emerald-800">
-                        <strong>Atenção:</strong> o pagamento será cobrado somente
-                        após você entrar com seu usuário e senha pela primeira vez.
+                        <strong>Atenção:</strong> o pagamento será cobrado
+                        somente após você entrar com seu usuário e senha pela
+                        primeira vez.
                       </p>
-                    </div>
-                  )}
-
-                  {mode === 'login' && (
-                    <div className="mt-5 text-center">
-                      <Link
-                        href="/auth/reset-password"
-                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
-                      >
-                        Esqueci minha senha
-                      </Link>
                     </div>
                   )}
 
@@ -310,7 +335,7 @@ export default function AuthLoginPage() {
                       className={`mt-5 rounded-2xl px-4 py-4 text-sm ${
                         message.toLowerCase().includes('sucesso')
                           ? 'bg-emerald-50 text-emerald-800'
-                          : 'bg-slate-100 text-slate-700'
+                          : 'bg-red-50 text-red-700'
                       }`}
                     >
                       {message}
@@ -329,15 +354,16 @@ export default function AuthLoginPage() {
                     </h3>
 
                     <p className="mt-3 text-sm leading-7 text-slate-600">
-                      Sua conta foi criada com sucesso. Agora clique no botão abaixo
-                      para entrar no sistema e seguir com o primeiro acesso.
+                      Sua conta foi criada. Clique abaixo para entrar na
+                      plataforma e seguir com o primeiro acesso.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
                     <p className="text-sm leading-6 text-amber-800">
-                      <strong>Importante:</strong> o pagamento será cobrado após
-                      você entrar com seu usuário e senha pela primeira vez.
+                      <strong>Importante:</strong> o pagamento será cobrado
+                      após você entrar com seu usuário e senha pela primeira
+                      vez.
                     </p>
                   </div>
 
@@ -363,7 +389,7 @@ export default function AuthLoginPage() {
                   </button>
 
                   {message && (
-                    <div className="rounded-2xl bg-slate-100 px-4 py-4 text-sm text-slate-700">
+                    <div className="rounded-2xl bg-red-50 px-4 py-4 text-sm text-red-700">
                       {message}
                     </div>
                   )}
@@ -376,6 +402,7 @@ export default function AuthLoginPage() {
             <p className="text-sm font-black text-slate-950">
               Pagamento no primeiro acesso
             </p>
+
             <p className="mt-2 text-sm leading-6 text-slate-600">
               O pagamento será cobrado somente depois que você entrar com seu
               e-mail e senha pela primeira vez.
