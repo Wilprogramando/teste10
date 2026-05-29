@@ -254,13 +254,13 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
   const instructions = parseList(recipe.instructions);
 
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
-        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-700 shadow-sm">
+    <article className="overflow-hidden rounded-[2rem] border border-emerald-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative bg-gradient-to-br from-emerald-100 via-emerald-50 to-teal-100 p-5">
+        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-emerald-800 shadow-sm">
           {recipeCategory.label}
         </span>
 
-        <div className="absolute right-5 top-8 flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-white text-emerald-700 shadow-sm">
+        <div className="absolute right-5 top-8 flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-white text-emerald-800 shadow-sm">
           <RecipeIcon size={36} />
         </div>
 
@@ -279,8 +279,8 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
 
       <div className="p-5">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-slate-50 p-3">
-            <div className="flex items-center gap-2 text-slate-500">
+          <div className="rounded-2xl bg-emerald-50 p-3">
+            <div className="flex items-center gap-2 text-emerald-700">
               <Flame size={16} />
               <span className="text-xs font-black uppercase">Calorias</span>
             </div>
@@ -290,8 +290,8 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-3">
-            <div className="flex items-center gap-2 text-slate-500">
+          <div className="rounded-2xl bg-emerald-50 p-3">
+            <div className="flex items-center gap-2 text-emerald-700">
               <Clock3 size={16} />
               <span className="text-xs font-black uppercase">Tempo</span>
             </div>
@@ -303,22 +303,22 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-2xl bg-emerald-50 p-3 text-center">
-            <p className="text-xs font-bold text-emerald-700">Proteína</p>
+          <div className="rounded-2xl bg-emerald-100 p-3 text-center">
+            <p className="text-xs font-bold text-emerald-800">Proteína</p>
             <p className="mt-1 text-sm font-black text-slate-950">
               {recipe.protein_g ?? '--'}g
             </p>
           </div>
 
-          <div className="rounded-2xl bg-orange-50 p-3 text-center">
-            <p className="text-xs font-bold text-orange-700">Carbo</p>
+          <div className="rounded-2xl bg-orange-100 p-3 text-center">
+            <p className="text-xs font-bold text-orange-800">Carbo</p>
             <p className="mt-1 text-sm font-black text-slate-950">
               {recipe.carbs_g ?? '--'}g
             </p>
           </div>
 
-          <div className="rounded-2xl bg-blue-50 p-3 text-center">
-            <p className="text-xs font-bold text-blue-700">Gordura</p>
+          <div className="rounded-2xl bg-blue-100 p-3 text-center">
+            <p className="text-xs font-bold text-blue-800">Gordura</p>
             <p className="mt-1 text-sm font-black text-slate-950">
               {recipe.fat_g ?? '--'}g
             </p>
@@ -337,7 +337,7 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
                   key={`${recipe.id}-ingredient-${index}`}
                   className="flex gap-2 text-sm leading-6 text-slate-600"
                 >
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-700" />
                   {ingredient}
                 </li>
               ))}
@@ -346,7 +346,7 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
         )}
 
         {instructions.length > 0 && (
-          <div className="mt-5 rounded-3xl bg-slate-50 p-4">
+          <div className="mt-5 rounded-3xl bg-emerald-50 p-4">
             <h4 className="text-sm font-black text-slate-950">
               Modo de preparo
             </h4>
@@ -357,7 +357,7 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
                   key={`${recipe.id}-instruction-${index}`}
                   className="flex gap-2 text-sm leading-6 text-slate-600"
                 >
-                  <span className="font-black text-emerald-700">
+                  <span className="font-black text-emerald-800">
                     {index + 1}.
                   </span>
                   {instruction}
@@ -405,7 +405,7 @@ export function RecipesView({
 
   return (
     <div className="space-y-6 pb-10">
-      <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
+      <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
         <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
           <ChefHat size={16} />
           Receitas saudáveis
@@ -435,9 +435,9 @@ export function RecipesView({
         </div>
       )}
 
-      <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+      <section className="rounded-[2rem] border border-emerald-100 bg-white p-5 shadow-sm md:p-6">
         <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
             <Search size={23} />
           </div>
 
@@ -465,15 +465,15 @@ export function RecipesView({
                 onClick={() => setSelectedCategory(category.key)}
                 className={`rounded-3xl border p-4 text-left transition ${
                   active
-                    ? 'border-slate-950 bg-emerald-700 text-white shadow-lg shadow-emerald-100'
-                    : 'border-slate-100 bg-slate-50 text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                    ? 'border-emerald-950 bg-emerald-800 text-white shadow-lg shadow-emerald-200'
+                    : 'border-emerald-200 bg-emerald-100 text-slate-800 hover:border-emerald-500 hover:bg-emerald-200'
                 }`}
               >
                 <div
                   className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
                     active
                       ? 'bg-white/20 text-white'
-                      : 'bg-white text-emerald-700'
+                      : 'bg-emerald-50 text-emerald-800'
                   }`}
                 >
                   <Icon size={22} />
@@ -483,7 +483,7 @@ export function RecipesView({
 
                 <p
                   className={`mt-1 text-sm ${
-                    active ? 'text-emerald-50' : 'text-slate-500'
+                    active ? 'text-emerald-50' : 'text-emerald-800'
                   }`}
                 >
                   {count} opções
@@ -497,12 +497,12 @@ export function RecipesView({
       <section>
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-800">
               Categoria selecionada
             </p>
 
             <div className="mt-2 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
                 <SelectedIcon size={24} />
               </div>
 
@@ -521,7 +521,7 @@ export function RecipesView({
           <button
             type="button"
             onClick={() => setSelectedCategory(categories[0].key)}
-            className="w-fit rounded-full bg-slate-100 px-5 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-200"
+            className="w-fit rounded-full bg-emerald-100 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-200"
           >
             Trocar
           </button>
@@ -534,8 +534,8 @@ export function RecipesView({
             ))}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-slate-100 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-700">
+          <div className="rounded-[2rem] border border-emerald-100 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-800">
               <SelectedIcon size={30} />
             </div>
 
