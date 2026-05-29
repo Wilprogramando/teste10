@@ -14,9 +14,21 @@ import { createClient } from '@/lib/supabaseClient';
 
 type Mode = 'signup' | 'login';
 
-function getFriendlyError(message?: string) {
+function getFriendlyError(message?: string, status?: number) {
   const text = message || '';
   const lower = text.toLowerCase();
+
+  if (status === 429) {
+    return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente com um e-mail novo.';
+  }
+
+  if (
+    lower.includes('rate limit') ||
+    lower.includes('too many requests') ||
+    lower.includes('over email send rate limit')
+  ) {
+    return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente com um e-mail novo.';
+  }
 
   if (lower.includes('invalid login credentials')) {
     return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
@@ -132,7 +144,7 @@ export default function AuthLoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
-      setMessage(getFriendlyError(error?.message));
+      setMessage(getFriendlyError(error?.message, error?.status));
     } finally {
       setLoading(false);
     }
@@ -167,7 +179,7 @@ export default function AuthLoginPage() {
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
-      setMessage(getFriendlyError(error?.message));
+      setMessage(getFriendlyError(error?.message, error?.status));
       setSuccessRegistered(false);
       setMode('login');
     } finally {
@@ -233,6 +245,17 @@ export default function AuthLoginPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-amber-100 bg-amber-50 p-5 shadow-sm">
+                <p className="text-sm font-black text-amber-900">
+                  Evite muitas tentativas seguidas
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-amber-800">
+                  Se aparecer limite de tentativas, aguarde alguns minutos antes
+                  de tentar novamente.
+                </p>
               </div>
             </div>
           </div>
