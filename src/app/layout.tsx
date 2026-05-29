@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import './globals.css';
 
-const privateRoutes = [
+const routesWithoutHeader = [
+  '/',
   '/dashboard',
   '/meu-dia',
   '/receitas',
@@ -23,9 +24,13 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  const hideHeader = privateRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const hideHeader = routesWithoutHeader.some((route) => {
+    if (route === '/') {
+      return pathname === '/';
+    }
+
+    return pathname.startsWith(route);
+  });
 
   return (
     <html lang="pt-BR">
