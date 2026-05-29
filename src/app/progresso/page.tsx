@@ -5,22 +5,19 @@ import {
   Activity,
   BarChart3,
   CalendarCheck,
-  Heart,
-  LineChart,
-  Moon,
-  NotebookPen,
-  Plus,
+  HeartPulse,
+  LineChart as LineChartIcon,
+  Ruler,
   Save,
   Scale,
   Sparkles,
-  Target,
   TrendingDown,
-  Zap,
+  TrendingUp,
 } from 'lucide-react';
 import {
   CartesianGrid,
   Line,
-  LineChart as RechartsLineChart,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -28,14 +25,6 @@ import {
 } from 'recharts';
 import { AppShell } from '@/components/AppShell';
 import { createClient } from '@/lib/supabaseClient';
-
-type Profile = {
-  initial_weight_kg?: number | null;
-  initial_weight?: number | null;
-  current_weight_kg?: number | null;
-  current_weight?: number | null;
-  goal?: string | null;
-};
 
 type Metric = {
   id: string;
@@ -50,17 +39,8 @@ type Metric = {
   mood: number | null;
   sleep_quality: number | null;
   notes: string | null;
-  photo_url: string | null;
   measured_at: string;
-  created_at?: string;
-};
-
-type DailyProgress = {
-  id: string;
-  user_id: string;
-  date: string;
-  completed?: boolean | null;
-  day_completed?: boolean | null;
+  created_at: string;
 };
 
 type MetricForm = {
@@ -89,132 +69,104 @@ const initialForm: MetricForm = {
   notes: '',
 };
 
-function numberOrNull(value: string) {
-  if (!value || value.trim() === '') return null;
+const MAX_CHART_WEIGHT = 300;
+const MIN_CHART_WEIGHT = 20;
 
-  const parsed = Number(value);
+function toNumberOrNull(value: string) {
+  if (!value || value.trim() === '') {
+    return null;
+  }
 
-  if (Number.isNaN(parsed)) return null;
+  const normalizedValue = value.replace(',', '.');
+  const parsed = Number(normalizedValue);
+
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
 
   return parsed;
 }
 
-function formatNumber(value?: number | null, suffix = '') {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+function formatNumber(value?: number | null) {
+  if (value === null || value === undefined) {
     return '--';
   }
 
-  return `${Number(value).toLocaleString('pt-BR', {
-    maximumFractionDigits: 1,
-  })}${suffix}`;
+  return String(Number(value).toFixed(1)).replace('.', ',');
 }
 
 function formatDate(date: string) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', {
+  return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
-  });
+  }).format(new Date(date));
 }
 
-function goalLabel(goal?: string | null) {
-  const labels: Record<string, string> = {
-    emagrecer: 'Emagrecimento',
-    ganhar_massa: 'Ganho de massa',
-    condicionamento: 'Condicionamento',
-    vida_saudavel: 'Vida saudável',
-  };
-
-  return goal ? labels[goal] ?? goal : 'Sua evolução';
+function getTodayDate() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
 }
 
-function StatCard({
+function MetricCard({
   title,
   value,
-  subtitle,
+  description,
   icon: Icon,
 }: {
   title: string;
   value: string;
-  subtitle?: string;
+  description: string;
   icon: React.ElementType;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-wide text-slate-500">
             {title}
           </p>
 
-          <p className="mt-2 text-2xl font-black leading-none text-slate-950">
-            {value}
-          </p>
+          <p className="mt-3 text-3xl font-black text-slate-950">{value}</p>
 
-          {subtitle && (
-            <p className="mt-2 text-xs font-semibold text-slate-500">
-              {subtitle}
-            </p>
-          )}
+          <p className="mt-2 text-sm font-medium text-slate-500">
+            {description}
+          </p>
         </div>
 
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-          <Icon size={21} />
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <Icon size={24} />
         </div>
       </div>
     </div>
   );
 }
 
-function RatingInput({
+function Field({
   label,
-  value,
-  onChange,
   icon: Icon,
+  children,
 }: {
   label: string;
-  value: string;
-  onChange: (value: string) => void;
   icon: React.ElementType;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-      <div className="flex items-center gap-2">
-        <Icon size={17} className="text-emerald-700" />
-        <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-          {label}
-        </p>
-      </div>
+    <label className="block rounded-3xl border border-slate-100 bg-slate-50 p-4">
+      <span className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-500">
+        <Icon size={16} className="text-emerald-700" />
+        {label}
+      </span>
 
-      <div className="mt-3 grid grid-cols-5 gap-2">
-        {[1, 2, 3, 4, 5].map((number) => {
-          const active = value === String(number);
-
-          return (
-            <button
-              key={number}
-              type="button"
-              onClick={() => onChange(String(number))}
-              className={`h-10 rounded-2xl text-sm font-black transition ${
-                active
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100'
-                  : 'bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-700'
-              }`}
-            >
-              {number}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+      {children}
+    </label>
   );
 }
 
 export default function ProgressoPage() {
   const supabase = createClient();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [dailyProgress, setDailyProgress] = useState<DailyProgress[]>([]);
   const [form, setForm] = useState<MetricForm>(initialForm);
 
   const [loading, setLoading] = useState(true);
@@ -225,69 +177,30 @@ export default function ProgressoPage() {
     'success'
   );
 
-  async function loadData() {
-    setLoading(true);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const [{ data: profileData }, { data: metricsData }, { data: dailyData }] =
-      await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-
-        supabase
-          .from('user_metrics')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('measured_at', { ascending: true }),
-
-        supabase
-          .from('daily_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('date', { ascending: true }),
-      ]);
-
-    setProfile((profileData ?? null) as Profile | null);
-    setMetrics((metricsData ?? []) as Metric[]);
-    setDailyProgress((dailyData ?? []) as DailyProgress[]);
-
-    const latest = ((metricsData ?? []) as Metric[]).at(-1);
-
-    if (latest) {
-      setForm((current) => ({
-        ...current,
-        weight_kg: latest.weight_kg ? String(latest.weight_kg) : '',
-        waist_cm: latest.waist_cm ? String(latest.waist_cm) : '',
-        chest_cm: latest.chest_cm ? String(latest.chest_cm) : '',
-        hip_cm: latest.hip_cm ? String(latest.hip_cm) : '',
-        arm_cm: latest.arm_cm ? String(latest.arm_cm) : '',
-        thigh_cm: latest.thigh_cm ? String(latest.thigh_cm) : '',
-        energy: latest.energy ? String(latest.energy) : '3',
-        mood: latest.mood ? String(latest.mood) : '3',
-        sleep_quality: latest.sleep_quality
-          ? String(latest.sleep_quality)
-          : '3',
-      }));
-    }
-
-    setLoading(false);
-  }
-
   useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    async function loadMetrics() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('user_metrics')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('measured_at', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      setMetrics((data ?? []) as Metric[]);
+      setLoading(false);
+    }
+
+    loadMetrics();
+  }, [supabase]);
 
   function updateField(field: keyof MetricForm, value: string) {
     setForm((current) => ({
@@ -296,9 +209,101 @@ export default function ProgressoPage() {
     }));
   }
 
+  const validChartMetrics = useMemo(() => {
+    return metrics.filter((metric) => {
+      const weight = Number(metric.weight_kg);
+
+      return (
+        metric.weight_kg !== null &&
+        metric.weight_kg !== undefined &&
+        !Number.isNaN(weight) &&
+        weight >= MIN_CHART_WEIGHT &&
+        weight <= MAX_CHART_WEIGHT
+      );
+    });
+  }, [metrics]);
+
+  const ignoredChartMetrics = useMemo(() => {
+    return metrics.filter((metric) => {
+      const weight = Number(metric.weight_kg);
+
+      if (metric.weight_kg === null || metric.weight_kg === undefined) {
+        return false;
+      }
+
+      return (
+        Number.isNaN(weight) ||
+        weight < MIN_CHART_WEIGHT ||
+        weight > MAX_CHART_WEIGHT
+      );
+    });
+  }, [metrics]);
+
+  const chartData = useMemo(() => {
+    return validChartMetrics.map((metric, index) => ({
+      index: index + 1,
+      date: formatDate(metric.measured_at),
+      fullDate: new Intl.DateTimeFormat('pt-BR').format(
+        new Date(metric.measured_at)
+      ),
+      weight: Number(metric.weight_kg),
+    }));
+  }, [validChartMetrics]);
+
+  const latestMetric = metrics[metrics.length - 1] ?? null;
+  const firstMetric = metrics.find((metric) => metric.weight_kg !== null) ?? null;
+
+  const latestWeight = latestMetric?.weight_kg ?? null;
+  const firstWeight = firstMetric?.weight_kg ?? null;
+
+  const weightDifference =
+    latestWeight !== null &&
+    latestWeight !== undefined &&
+    firstWeight !== null &&
+    firstWeight !== undefined
+      ? Number(latestWeight) - Number(firstWeight)
+      : null;
+
+  const averageEnergy =
+    metrics.length > 0
+      ? metrics.reduce((sum, metric) => sum + Number(metric.energy ?? 0), 0) /
+        metrics.length
+      : null;
+
+  const averageSleep =
+    metrics.length > 0
+      ? metrics.reduce(
+          (sum, metric) => sum + Number(metric.sleep_quality ?? 0),
+          0
+        ) / metrics.length
+      : null;
+
   async function saveMetric() {
-    setSaving(true);
     setMessage('');
+
+    const weight = toNumberOrNull(form.weight_kg);
+
+    if (!weight) {
+      setMessageType('error');
+      setMessage('Informe seu peso atual.');
+      return;
+    }
+
+    if (weight <= 0) {
+      setMessageType('error');
+      setMessage('Informe um peso válido.');
+      return;
+    }
+
+    if (weight > MAX_CHART_WEIGHT) {
+      setMessageType('error');
+      setMessage(
+        `O peso informado parece incorreto. O gráfico aceita no máximo ${MAX_CHART_WEIGHT} kg.`
+      );
+      return;
+    }
+
+    setSaving(true);
 
     const {
       data: { user },
@@ -311,24 +316,27 @@ export default function ProgressoPage() {
       return;
     }
 
-    const currentDate = new Date().toISOString().slice(0, 10);
-
     const payload = {
       user_id: user.id,
-      weight_kg: numberOrNull(form.weight_kg),
-      waist_cm: numberOrNull(form.waist_cm),
-      chest_cm: numberOrNull(form.chest_cm),
-      hip_cm: numberOrNull(form.hip_cm),
-      arm_cm: numberOrNull(form.arm_cm),
-      thigh_cm: numberOrNull(form.thigh_cm),
-      energy: numberOrNull(form.energy),
-      mood: numberOrNull(form.mood),
-      sleep_quality: numberOrNull(form.sleep_quality),
+      weight_kg: weight,
+      waist_cm: toNumberOrNull(form.waist_cm),
+      chest_cm: toNumberOrNull(form.chest_cm),
+      hip_cm: toNumberOrNull(form.hip_cm),
+      arm_cm: toNumberOrNull(form.arm_cm),
+      thigh_cm: toNumberOrNull(form.thigh_cm),
+      energy: toNumberOrNull(form.energy),
+      mood: toNumberOrNull(form.mood),
+      sleep_quality: toNumberOrNull(form.sleep_quality),
       notes: form.notes.trim() || null,
-      measured_at: currentDate,
+      measured_at: getTodayDate(),
+      updated_at: new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('user_metrics').insert(payload);
+    const { data, error } = await supabase
+      .from('user_metrics')
+      .insert(payload)
+      .select('*')
+      .single();
 
     if (!error && payload.weight_kg) {
       await supabase
@@ -349,65 +357,12 @@ export default function ProgressoPage() {
       return;
     }
 
+    setMetrics((current) => [...current, data as Metric]);
+    setForm(initialForm);
+
     setMessageType('success');
     setMessage('Progresso registrado com sucesso.');
-    setForm((current) => ({
-      ...current,
-      notes: '',
-    }));
-
-    await loadData();
   }
-
-  const initialWeight =
-    profile?.initial_weight_kg ?? profile?.initial_weight ?? null;
-
-  const latestMetric = metrics.at(-1);
-
-  const currentWeight =
-    latestMetric?.weight_kg ??
-    profile?.current_weight_kg ??
-    profile?.current_weight ??
-    initialWeight ??
-    null;
-
-  const completedDays = dailyProgress.filter(
-    (item) => item.completed || item.day_completed
-  ).length;
-
-  const progressPercent = Math.min(Math.round((completedDays / 28) * 100), 100);
-
-  const unlockedStages = Math.min(
-    Math.max(Math.ceil((progressPercent || 1) / 10), 1),
-    10
-  );
-
-  const weightDiff =
-    initialWeight && currentWeight
-      ? Number(currentWeight) - Number(initialWeight)
-      : null;
-
-  const chartData = useMemo(() => {
-    const data = metrics
-      .filter((metric) => metric.weight_kg !== null)
-      .map((metric) => ({
-        date: formatDate(metric.measured_at),
-        peso: Number(metric.weight_kg),
-      }));
-
-    if (data.length > 0) return data;
-
-    if (initialWeight) {
-      return [
-        {
-          date: 'Início',
-          peso: Number(initialWeight),
-        },
-      ];
-    }
-
-    return [];
-  }, [metrics, initialWeight]);
 
   if (loading) {
     return (
@@ -424,100 +379,77 @@ export default function ProgressoPage() {
       <div className="space-y-6 pb-10">
         <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
-            <BarChart3 size={16} />
+            <Sparkles size={16} />
             Progresso
           </span>
 
           <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-            Acompanhe sua evolução real.
+            Acompanhe sua evolução
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-            Registre peso, medidas, energia, humor e sono para visualizar sua
-            jornada com mais clareza.
+            Registre seu peso, medidas e sensação do dia para acompanhar sua
+            transformação com clareza.
           </p>
-
-          <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/20">
-            <div
-              className="h-full rounded-full bg-white"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <div className="mt-3 flex items-center justify-between text-sm font-bold text-emerald-50">
-            <span>{progressPercent}% da jornada</span>
-            <span>{completedDays}/28 dias</span>
-          </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatCard
-            title="Peso inicial"
-            value={formatNumber(initialWeight, ' kg')}
-            subtitle="Ponto de partida"
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            title="Peso atual"
+            value={`${formatNumber(latestWeight)} kg`}
+            description="Último registro"
             icon={Scale}
           />
 
-          <StatCard
-            title="Peso atual"
-            value={formatNumber(currentWeight, ' kg')}
-            subtitle={
-              weightDiff === null
-                ? 'Aguardando dados'
-                : weightDiff === 0
-                  ? 'Sem alteração'
-                  : `${weightDiff > 0 ? '+' : ''}${formatNumber(
-                      weightDiff,
-                      ' kg'
-                    )}`
+          <MetricCard
+            title="Evolução"
+            value={
+              weightDifference === null
+                ? '-- kg'
+                : `${weightDifference > 0 ? '+' : ''}${String(
+                    weightDifference.toFixed(1)
+                  ).replace('.', ',')} kg`
             }
-            icon={TrendingDown}
+            description="Desde o primeiro registro"
+            icon={weightDifference && weightDifference < 0 ? TrendingDown : TrendingUp}
           />
 
-          <StatCard
-            title="Dias concluídos"
-            value={String(completedDays)}
-            subtitle="Meta de 28 dias"
-            icon={CalendarCheck}
+          <MetricCard
+            title="Energia"
+            value={averageEnergy === null ? '--' : averageEnergy.toFixed(1)}
+            description="Média dos registros"
+            icon={Activity}
           />
 
-          <StatCard
-            title="Etapas liberadas"
-            value={`${unlockedStages}/10`}
-            subtitle={goalLabel(profile?.goal)}
-            icon={Sparkles}
+          <MetricCard
+            title="Sono"
+            value={averageSleep === null ? '--' : averageSleep.toFixed(1)}
+            description="Qualidade média"
+            icon={HeartPulse}
           />
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                <Plus size={23} />
-              </div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-slate-950">
+                Registrar progresso
+              </h2>
 
-              <div>
-                <h2 className="text-xl font-black text-slate-950">
-                  Registrar progresso
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Atualize seus dados de hoje.
-                </p>
-              </div>
+              <p className="mt-2 text-sm text-slate-500">
+                Preencha seu peso atual e, se quiser, suas medidas corporais.
+              </p>
             </div>
 
-            <div className="grid gap-3">
-              <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-500">
-                  <Scale size={16} className="text-emerald-700" />
-                  Peso atual
-                </span>
-
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Peso atual" icon={Scale}>
                 <div className="flex items-center gap-2">
                   <input
                     className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
-                    placeholder="Ex: 80"
+                    placeholder="Ex: 82"
                     type="number"
+                    min="1"
+                    max="300"
                     value={form.weight_kg}
                     onChange={(event) =>
                       updateField('weight_kg', event.target.value)
@@ -525,115 +457,136 @@ export default function ProgressoPage() {
                   />
                   <span className="text-sm font-bold text-slate-400">kg</span>
                 </div>
-              </label>
+              </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                  <span className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Cintura
-                  </span>
+              <Field label="Cintura" icon={Ruler}>
+                <div className="flex items-center gap-2">
                   <input
-                    className="mt-2 w-full bg-transparent font-semibold outline-none"
-                    placeholder="cm"
+                    className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                    placeholder="Ex: 88"
                     type="number"
                     value={form.waist_cm}
                     onChange={(event) =>
                       updateField('waist_cm', event.target.value)
                     }
                   />
-                </label>
+                  <span className="text-sm font-bold text-slate-400">cm</span>
+                </div>
+              </Field>
 
-                <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                  <span className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Peito
-                  </span>
+              <Field label="Peitoral" icon={Ruler}>
+                <div className="flex items-center gap-2">
                   <input
-                    className="mt-2 w-full bg-transparent font-semibold outline-none"
-                    placeholder="cm"
+                    className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                    placeholder="Ex: 102"
                     type="number"
                     value={form.chest_cm}
                     onChange={(event) =>
                       updateField('chest_cm', event.target.value)
                     }
                   />
-                </label>
+                  <span className="text-sm font-bold text-slate-400">cm</span>
+                </div>
+              </Field>
 
-                <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                  <span className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Quadril
-                  </span>
+              <Field label="Quadril" icon={Ruler}>
+                <div className="flex items-center gap-2">
                   <input
-                    className="mt-2 w-full bg-transparent font-semibold outline-none"
-                    placeholder="cm"
+                    className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                    placeholder="Ex: 98"
                     type="number"
                     value={form.hip_cm}
                     onChange={(event) =>
                       updateField('hip_cm', event.target.value)
                     }
                   />
-                </label>
+                  <span className="text-sm font-bold text-slate-400">cm</span>
+                </div>
+              </Field>
 
-                <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                  <span className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Braço
-                  </span>
+              <Field label="Braço" icon={Ruler}>
+                <div className="flex items-center gap-2">
                   <input
-                    className="mt-2 w-full bg-transparent font-semibold outline-none"
-                    placeholder="cm"
+                    className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                    placeholder="Ex: 34"
                     type="number"
                     value={form.arm_cm}
                     onChange={(event) =>
                       updateField('arm_cm', event.target.value)
                     }
                   />
-                </label>
+                  <span className="text-sm font-bold text-slate-400">cm</span>
+                </div>
+              </Field>
 
-                <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                  <span className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Coxa
-                  </span>
+              <Field label="Coxa" icon={Ruler}>
+                <div className="flex items-center gap-2">
                   <input
-                    className="mt-2 w-full bg-transparent font-semibold outline-none"
-                    placeholder="cm"
+                    className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                    placeholder="Ex: 58"
                     type="number"
                     value={form.thigh_cm}
                     onChange={(event) =>
                       updateField('thigh_cm', event.target.value)
                     }
                   />
-                </label>
-              </div>
+                  <span className="text-sm font-bold text-slate-400">cm</span>
+                </div>
+              </Field>
 
-              <RatingInput
-                label="Energia"
-                value={form.energy}
-                onChange={(value) => updateField('energy', value)}
-                icon={Zap}
-              />
+              <Field label="Energia do dia" icon={Activity}>
+                <select
+                  className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
+                  value={form.energy}
+                  onChange={(event) => updateField('energy', event.target.value)}
+                >
+                  <option value="1">1 - Muito baixa</option>
+                  <option value="2">2 - Baixa</option>
+                  <option value="3">3 - Normal</option>
+                  <option value="4">4 - Boa</option>
+                  <option value="5">5 - Excelente</option>
+                </select>
+              </Field>
 
-              <RatingInput
-                label="Humor"
-                value={form.mood}
-                onChange={(value) => updateField('mood', value)}
-                icon={Heart}
-              />
+              <Field label="Humor" icon={HeartPulse}>
+                <select
+                  className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
+                  value={form.mood}
+                  onChange={(event) => updateField('mood', event.target.value)}
+                >
+                  <option value="1">1 - Ruim</option>
+                  <option value="2">2 - Baixo</option>
+                  <option value="3">3 - Normal</option>
+                  <option value="4">4 - Bom</option>
+                  <option value="5">5 - Excelente</option>
+                </select>
+              </Field>
 
-              <RatingInput
-                label="Sono"
-                value={form.sleep_quality}
-                onChange={(value) => updateField('sleep_quality', value)}
-                icon={Moon}
-              />
+              <Field label="Sono" icon={HeartPulse}>
+                <select
+                  className="w-full bg-transparent text-base font-semibold text-slate-950 outline-none"
+                  value={form.sleep_quality}
+                  onChange={(event) =>
+                    updateField('sleep_quality', event.target.value)
+                  }
+                >
+                  <option value="1">1 - Péssimo</option>
+                  <option value="2">2 - Ruim</option>
+                  <option value="3">3 - Normal</option>
+                  <option value="4">4 - Bom</option>
+                  <option value="5">5 - Excelente</option>
+                </select>
+              </Field>
 
-              <label className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-                <span className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-500">
-                  <NotebookPen size={16} className="text-emerald-700" />
+              <label className="block rounded-3xl border border-slate-100 bg-slate-50 p-4 md:col-span-2">
+                <span className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-500">
+                  <BarChart3 size={16} className="text-emerald-700" />
                   Observações
                 </span>
 
                 <textarea
-                  className="min-h-24 w-full resize-none bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
-                  placeholder="Como foi seu dia? Treinou bem? Sentiu evolução?"
+                  className="min-h-28 w-full resize-none bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-400"
+                  placeholder="Como você se sentiu hoje?"
                   value={form.notes}
                   onChange={(event) => updateField('notes', event.target.value)}
                 />
@@ -643,15 +596,15 @@ export default function ProgressoPage() {
                 type="button"
                 onClick={saveMetric}
                 disabled={saving}
-                className="flex items-center justify-center gap-2 rounded-3xl bg-emerald-600 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex items-center justify-center gap-2 rounded-3xl bg-emerald-600 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70 md:col-span-2"
               >
                 <Save size={19} />
-                {saving ? 'Registrando...' : 'Registrar progresso'}
+                {saving ? 'Salvando...' : 'Salvar progresso'}
               </button>
 
               {message && (
                 <p
-                  className={`rounded-3xl p-4 text-sm font-semibold ${
+                  className={`rounded-3xl p-4 text-sm font-semibold md:col-span-2 ${
                     messageType === 'success'
                       ? 'bg-emerald-50 text-emerald-800'
                       : 'bg-red-50 text-red-700'
@@ -663,140 +616,200 @@ export default function ProgressoPage() {
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                  <LineChart size={23} />
-                </div>
-
+          <div className="space-y-6">
+            <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+              <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-black text-slate-950">
-                    Evolução do peso
-                  </h2>
-                  <p className="text-sm text-slate-500">
-                    Histórico dos registros realizados.
-                  </p>
-                </div>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                      <LineChartIcon size={23} />
+                    </div>
 
-              <div className="h-72">
-                {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsLineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="peso"
-                        stroke="#059669"
-                        strokeWidth={3}
-                        dot={{ r: 5 }}
-                        activeDot={{ r: 7 }}
-                      />
-                    </RechartsLineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center rounded-3xl bg-slate-50 text-center">
                     <div>
-                      <Scale className="mx-auto text-emerald-700" size={36} />
-                      <p className="mt-3 text-sm font-semibold text-slate-500">
-                        Registre seu primeiro peso para gerar o gráfico.
+                      <h2 className="text-2xl font-black text-slate-950">
+                        Evolução do peso
+                      </h2>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        Visualização limitada até {MAX_CHART_WEIGHT} kg.
                       </p>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
 
-            <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+              {chartData.length > 0 ? (
+                <>
+                  <div className="h-[300px] w-full md:h-[360px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={chartData}
+                        margin={{
+                          top: 12,
+                          right: 16,
+                          left: -18,
+                          bottom: 8,
+                        }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="4 4"
+                          vertical={false}
+                          stroke="#e2e8f0"
+                        />
+
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 12, fill: '#64748b' }}
+                          tickLine={false}
+                          axisLine={false}
+                          minTickGap={18}
+                        />
+
+                        <YAxis
+                          domain={[0, MAX_CHART_WEIGHT]}
+                          ticks={[0, 60, 120, 180, 240, 300]}
+                          tick={{ fontSize: 12, fill: '#64748b' }}
+                          tickLine={false}
+                          axisLine={false}
+                          width={42}
+                          unit="kg"
+                        />
+
+                        <Tooltip
+                          cursor={{
+                            stroke: '#10b981',
+                            strokeWidth: 1,
+                            strokeDasharray: '4 4',
+                          }}
+                          contentStyle={{
+                            borderRadius: 18,
+                            border: '1px solid #d1fae5',
+                            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.12)',
+                          }}
+                          formatter={(value) => [
+                            `${String(value).replace('.', ',')} kg`,
+                            'Peso',
+                          ]}
+                          labelFormatter={(_, payload) => {
+                            const item = payload?.[0]?.payload;
+
+                            return item?.fullDate
+                              ? `Data: ${item.fullDate}`
+                              : 'Registro';
+                          }}
+                        />
+
+                        <Line
+                          type="monotone"
+                          dataKey="weight"
+                          stroke="#059669"
+                          strokeWidth={4}
+                          dot={{
+                            r: 5,
+                            strokeWidth: 3,
+                            stroke: '#059669',
+                            fill: '#ffffff',
+                          }}
+                          activeDot={{
+                            r: 8,
+                            strokeWidth: 3,
+                            stroke: '#047857',
+                            fill: '#ffffff',
+                          }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {ignoredChartMetrics.length > 0 && (
+                    <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                      <p className="text-sm font-semibold leading-6 text-amber-800">
+                        {ignoredChartMetrics.length} registro(s) fora do limite
+                        de {MIN_CHART_WEIGHT} kg a {MAX_CHART_WEIGHT} kg não
+                        aparecem no gráfico para manter a visualização correta.
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-3xl bg-slate-50 p-6 text-center">
+                  <p className="font-black text-slate-950">
+                    Nenhum peso válido para o gráfico.
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Registre pesos entre {MIN_CHART_WEIGHT} kg e{' '}
+                    {MAX_CHART_WEIGHT} kg para visualizar sua evolução.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                  <Activity size={23} />
+                  <CalendarCheck size={23} />
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-slate-950">
+                  <h2 className="text-2xl font-black text-slate-950">
                     Últimos registros
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Seus dados mais recentes.
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Histórico recente do seu progresso.
                   </p>
                 </div>
               </div>
 
-              {metrics.length === 0 ? (
-                <div className="rounded-3xl bg-slate-50 p-5 text-center">
-                  <p className="text-sm font-semibold text-slate-500">
-                    Nenhum registro encontrado ainda.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {metrics
-                    .slice()
+              {metrics.length > 0 ? (
+                <div className="space-y-3">
+                  {[...metrics]
                     .reverse()
-                    .slice(0, 5)
+                    .slice(0, 6)
                     .map((metric) => (
                       <div
                         key={metric.id}
-                        className="rounded-3xl bg-slate-50 p-4"
+                        className="rounded-3xl border border-slate-100 bg-slate-50 p-4"
                       >
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-start justify-between gap-4">
                           <div>
-                            <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                              {new Date(
-                                `${metric.measured_at}T00:00:00`
-                              ).toLocaleDateString('pt-BR')}
+                            <p className="text-sm font-black text-slate-950">
+                              {new Intl.DateTimeFormat('pt-BR').format(
+                                new Date(metric.measured_at)
+                              )}
                             </p>
 
-                            <p className="mt-1 text-lg font-black text-slate-950">
-                              {formatNumber(metric.weight_kg, ' kg')}
+                            <p className="mt-1 text-sm text-slate-500">
+                              Peso: {formatNumber(metric.weight_kg)} kg
                             </p>
+
+                            {metric.notes && (
+                              <p className="mt-2 text-sm leading-6 text-slate-600">
+                                {metric.notes}
+                              </p>
+                            )}
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="rounded-2xl bg-white px-3 py-2">
-                              <p className="text-[10px] font-black uppercase text-slate-400">
-                                Energia
-                              </p>
-                              <p className="font-black text-slate-950">
-                                {metric.energy ?? '--'}
-                              </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-white px-3 py-2">
-                              <p className="text-[10px] font-black uppercase text-slate-400">
-                                Humor
-                              </p>
-                              <p className="font-black text-slate-950">
-                                {metric.mood ?? '--'}
-                              </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-white px-3 py-2">
-                              <p className="text-[10px] font-black uppercase text-slate-400">
-                                Sono
-                              </p>
-                              <p className="font-black text-slate-950">
-                                {metric.sleep_quality ?? '--'}
-                              </p>
-                            </div>
+                          <div className="rounded-2xl bg-white px-3 py-2 text-xs font-black text-emerald-700">
+                            Registro
                           </div>
                         </div>
-
-                        {metric.notes && (
-                          <p className="mt-3 text-sm leading-6 text-slate-600">
-                            {metric.notes}
-                          </p>
-                        )}
                       </div>
                     ))}
                 </div>
+              ) : (
+                <div className="rounded-3xl bg-slate-50 p-6 text-center">
+                  <p className="font-black text-slate-950">
+                    Nenhum registro ainda.
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Salve seu primeiro progresso para começar seu histórico.
+                  </p>
+                </div>
               )}
-            </div>
+            </section>
           </div>
         </section>
       </div>
