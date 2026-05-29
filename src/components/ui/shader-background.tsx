@@ -172,13 +172,13 @@ export default function ShaderBackground({
   }
 
   useEffect(() => {
-    const canvasElement = canvasRef.current;
+    const initialCanvas = canvasRef.current;
 
-    if (!canvasElement) {
+    if (!initialCanvas) {
       return;
     }
 
-    const gl = canvasElement.getContext('webgl', {
+    const gl = initialCanvas.getContext('webgl', {
       alpha: true,
       antialias: true,
       preserveDrawingBuffer: false,
@@ -220,13 +220,19 @@ export default function ShaderBackground({
     const timeLocation = gl.getUniformLocation(shaderProgram, 'iTime');
 
     function resizeCanvas() {
-      const rect = canvasElement.getBoundingClientRect();
+      const canvas = canvasRef.current;
+
+      if (!canvas) {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      canvasElement.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvasElement.height = Math.max(1, Math.floor(rect.height * dpr));
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
 
-      gl.viewport(0, 0, canvasElement.width, canvasElement.height);
+      gl.viewport(0, 0, canvas.width, canvas.height);
     }
 
     resizeCanvas();
@@ -236,6 +242,12 @@ export default function ShaderBackground({
     const startTime = Date.now();
 
     function render() {
+      const canvas = canvasRef.current;
+
+      if (!canvas) {
+        return;
+      }
+
       const currentTime = (Date.now() - startTime) / 1000;
 
       gl.clearColor(0.9, 1.0, 0.94, 1.0);
@@ -243,19 +255,13 @@ export default function ShaderBackground({
 
       gl.useProgram(shaderProgram);
 
-      gl.uniform2f(
-        resolutionLocation,
-        canvasElement.width,
-        canvasElement.height
-      );
-
+      gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
       gl.uniform1f(timeLocation, currentTime);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
       gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
-
       gl.enableVertexAttribArray(vertexPosition);
+
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       animationFrameRef.current = requestAnimationFrame(render);
