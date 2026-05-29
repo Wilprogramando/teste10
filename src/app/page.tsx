@@ -179,13 +179,13 @@ export default function HomePage() {
               Entrar
             </Link>
 
-            <a
-              href="#oferta"
+            <Link
+              href="/auth/login"
               className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-4 py-2 text-xs font-black text-[#06111d] shadow-lg shadow-orange-500/30 transition hover:scale-[1.03] md:gap-2 md:px-6 md:py-3 md:text-sm"
             >
               Comprar
               <ArrowRight size={15} />
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -209,8 +209,8 @@ export default function HomePage() {
             </p>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:max-w-xl">
-              <a
-                href="#oferta"
+              <Link
+                href="/auth/login"
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-7 py-4 text-sm font-black text-[#06111d] shadow-xl shadow-orange-500/30 transition hover:scale-[1.03] md:text-base"
               >
                 Começar Agora
@@ -218,15 +218,15 @@ export default function HomePage() {
                   size={18}
                   className="transition group-hover:translate-x-1"
                 />
-              </a>
+              </Link>
 
-              <a
-                href="#oferta"
+              <Link
+                href="/auth/login"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-7 py-4 text-sm font-bold text-white transition hover:border-white/30 hover:bg-white/10 md:text-base"
               >
                 <PlayCircle size={18} />
                 Comprar Programa
-              </a>
+              </Link>
             </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -623,13 +623,13 @@ export default function HomePage() {
                   sistema que te faça agir.
                 </p>
 
-                <a
-                  href="#"
+                <Link
+                  href="/auth/login"
                   className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-5 text-center text-sm font-black text-[#07111c] shadow-xl shadow-orange-500/30 transition hover:scale-[1.02] md:text-base"
                 >
                   QUERO TRANSFORMAR MINHA VIDA
                   <ArrowRight size={18} />
-                </a>
+                </Link>
 
                 <p className="mt-4 text-center text-xs text-slate-400 md:text-sm">
                   Pagamento seguro • Acesso imediato • Oferta especial
