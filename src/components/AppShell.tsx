@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Apple,
   BarChart3,
+  Calculator,
   CalendarCheck,
   ChevronRight,
   Dumbbell,
@@ -55,6 +56,12 @@ const menuItems = [
     label: 'Progresso',
     description: 'Evolução e medidas',
     icon: BarChart3,
+  },
+  {
+    href: '/imc',
+    label: 'Calculadora IMC',
+    description: 'Peso ideal',
+    icon: Calculator,
   },
   {
     href: '/perfil',
