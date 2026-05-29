@@ -29,8 +29,7 @@ export default async function ReceitasPage() {
   const { data, error } = await supabase
     .from('recipes')
     .select('*')
-    .order('category', { ascending: true })
-    .order('title', { ascending: true });
+    .order('category', { ascending: true });
 
   return (
     <AppShell>
