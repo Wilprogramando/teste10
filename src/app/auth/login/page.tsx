@@ -1,291 +1,388 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { CheckCircle2, CreditCard, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react';
+import { FormEvent, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 
-type AuthMode = 'login' | 'signup' | 'reset-request' | 'reset-password';
+type Mode = 'signup' | 'login';
 
-function LoginContent() {
+export default function AuthLoginPage() {
   const supabase = createClient();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<Mode>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [successRegistered, setSuccessRegistered] = useState(false);
 
-  useEffect(() => {
-    const type = searchParams.get('type');
-    const reset = searchParams.get('reset');
-
-    if (type === 'recovery' || reset === '1') {
-      setMode('reset-password');
-      setMsg('Digite sua nova senha para concluir a recuperação.');
-    }
-  }, [searchParams]);
-
-  async function submit() {
-    setLoading(true);
-    setMsg('');
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage('');
 
     if (!email || !password) {
-      setLoading(false);
-      setMsg('Informe e-mail e senha.');
+      setMessage('Informe e-mail e senha.');
       return;
     }
 
-    const result =
-      mode === 'login'
-        ? await supabase.auth.signInWithPassword({
-            email,
-            password,
-          })
-        : await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth/login`,
-            },
-          });
-
-    setLoading(false);
-
-    if (result.error) {
-      setMsg(result.error.message);
-      return;
-    }
-
-    router.push('/dashboard');
-  }
-
-  async function sendResetEmail() {
-    setLoading(true);
-    setMsg('');
-
-    if (!email) {
-      setLoading(false);
-      setMsg('Informe seu e-mail para recuperar a senha.');
-      return;
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/login?reset=1`,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setMsg(error.message);
-      return;
-    }
-
-    setMsg(
-      'Enviamos um link de recuperação para seu e-mail. Verifique sua caixa de entrada e spam.'
-    );
-  }
-
-  async function updatePassword() {
-    setLoading(true);
-    setMsg('');
-
-    if (!newPassword || !confirmPassword) {
-      setLoading(false);
-      setMsg('Informe e confirme a nova senha.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setLoading(false);
-      setMsg('A nova senha precisa ter pelo menos 6 caracteres.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setLoading(false);
-      setMsg('As senhas não conferem.');
-      return;
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setMsg(error.message);
-      return;
-    }
-
-    setMsg('Senha alterada com sucesso. Você já pode entrar.');
-    setMode('login');
-    setPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-  }
-
-  return (
-    <main className="mx-auto max-w-md px-4 py-16">
-      <div className="card">
-        <h1 className="text-3xl font-black">
-          {mode === 'login' && 'Entrar'}
-          {mode === 'signup' && 'Criar conta'}
-          {mode === 'reset-request' && 'Recuperar senha'}
-          {mode === 'reset-password' && 'Nova senha'}
-        </h1>
-
-        <p className="mt-2 text-slate-600">
-          {mode === 'login' && 'Acesse sua evolução com segurança.'}
-          {mode === 'signup' && 'Crie sua conta para começar sua jornada.'}
-          {mode === 'reset-request' &&
-            'Informe seu e-mail para receber o link de recuperação.'}
-          {mode === 'reset-password' &&
-            'Digite uma nova senha para sua conta.'}
-        </p>
-
-        <div className="mt-6 grid gap-3">
-          {(mode === 'login' ||
-            mode === 'signup' ||
-            mode === 'reset-request') && (
-            <input
-              className="input"
-              placeholder="E-mail"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          )}
-
-          {(mode === 'login' || mode === 'signup') && (
-            <input
-              className="input"
-              placeholder="Senha"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          )}
-
-          {mode === 'reset-password' && (
-            <>
-              <input
-                className="input"
-                placeholder="Nova senha"
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-              />
-
-              <input
-                className="input"
-                placeholder="Confirmar nova senha"
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-              />
-            </>
-          )}
-
-          {(mode === 'login' || mode === 'signup') && (
-            <button className="btn" disabled={loading} onClick={submit}>
-              {loading
-                ? 'Aguarde...'
-                : mode === 'login'
-                  ? 'Entrar'
-                  : 'Cadastrar'}
-            </button>
-          )}
-
-          {mode === 'reset-request' && (
-            <button className="btn" disabled={loading} onClick={sendResetEmail}>
-              {loading ? 'Enviando...' : 'Enviar link de recuperação'}
-            </button>
-          )}
-
-          {mode === 'reset-password' && (
-            <button className="btn" disabled={loading} onClick={updatePassword}>
-              {loading ? 'Salvando...' : 'Alterar senha'}
-            </button>
-          )}
-
-          {mode === 'login' && (
-            <>
-              <button
-                className="btn-secondary"
-                type="button"
-                onClick={() => {
-                  setMsg('');
-                  setMode('signup');
-                }}
-              >
-                Criar nova conta
-              </button>
-
-              <button
-                className="text-sm font-semibold text-brand-700"
-                type="button"
-                onClick={() => {
-                  setMsg('');
-                  setMode('reset-request');
-                }}
-              >
-                Esqueci minha senha
-              </button>
-            </>
-          )}
-
-          {mode === 'signup' && (
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => {
-                setMsg('');
-                setMode('login');
-              }}
-            >
-              Já tenho conta
-            </button>
-          )}
-
-          {(mode === 'reset-request' || mode === 'reset-password') && (
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => {
-                setMsg('');
-                setMode('login');
-              }}
-            >
-              Voltar para login
-            </button>
-          )}
-
-          {msg && <p className="rounded-2xl bg-slate-100 p-3 text-sm">{msg}</p>}
-        </div>
-      </div>
-    </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <main className="mx-auto max-w-md px-4 py-16">
-          <div className="card">
-            <p className="text-slate-600">Carregando...</p>
-          </div>
-        </main>
+    if (mode === 'signup') {
+      if (!confirmPassword) {
+        setMessage('Confirme sua senha.');
+        return;
       }
-    >
-      <LoginContent />
-    </Suspense>
+
+      if (password !== confirmPassword) {
+        setMessage('As senhas não coincidem.');
+        return;
+      }
+
+      if (password.length < 6) {
+        setMessage('A senha deve ter pelo menos 6 caracteres.');
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        setSuccessRegistered(true);
+        setMessage('Cadastro realizado com sucesso.');
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error: any) {
+      const errorMessage =
+        error?.message || 'Não foi possível concluir sua solicitação agora.';
+      setMessage(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleEnterAndPay() {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error: any) {
+      const errorMessage =
+        error?.message ||
+        'Seu cadastro foi criado, mas não foi possível entrar automaticamente.';
+      setMessage(errorMessage);
+      setSuccessRegistered(false);
+      setMode('login');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f7fbfa_0%,#edf8f4_100%)]">
+      <section className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-10 md:px-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="hidden lg:block">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+              <Sparkles size={14} />
+              jornada de transformação
+            </div>
+
+            <h1 className="mt-6 text-5xl font-black leading-tight text-slate-950">
+              Crie sua conta e comece sua transformação hoje.
+            </h1>
+
+            <p className="mt-5 text-lg leading-8 text-slate-600">
+              Entre para a <strong>Jornada Seu Ademir</strong> e tenha acesso a
+              uma experiência pensada para disciplina, treino, evolução e
+              mudança real de vida.
+            </p>
+
+            <div className="mt-8 grid gap-4">
+              <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <p className="text-sm font-black text-slate-950">
+                  ✅ Acesso ao sistema completo
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Painel com treinos, alimentação, progresso e rotina diária.
+                </p>
+              </div>
+
+              <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <p className="text-sm font-black text-slate-950">
+                  ✅ Método simples e direto
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Sem complicação: você cria a conta, entra e começa sua jornada.
+                </p>
+              </div>
+
+              <div className="rounded-[2rem] border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <CreditCard className="mt-0.5 text-emerald-700" size={20} />
+                  <div>
+                    <p className="text-sm font-black text-emerald-800">
+                      Informação importante sobre o pagamento
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-emerald-700">
+                      O pagamento será cobrado <strong>após o seu primeiro acesso</strong>,
+                      quando você entrar com seu usuário e senha pela primeira vez.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-xl">
+          <div className="overflow-hidden rounded-[2rem] bg-white shadow-xl ring-1 ring-slate-100">
+            <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-6 text-white md:px-8">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-50">
+                Jornada Seu Ademir
+              </p>
+              <h2 className="mt-2 text-3xl font-black">
+                {successRegistered
+                  ? 'Cadastro concluído'
+                  : mode === 'signup'
+                  ? 'Criar conta'
+                  : 'Entrar na plataforma'}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-emerald-50">
+                {successRegistered
+                  ? 'Sua conta foi criada com sucesso. Agora você já pode acessar e seguir para o primeiro pagamento.'
+                  : mode === 'signup'
+                  ? 'Crie sua conta para começar sua jornada.'
+                  : 'Entre com seu e-mail e senha para acessar sua área.'}
+              </p>
+            </div>
+
+            <div className="p-6 md:p-8">
+              {!successRegistered ? (
+                <>
+                  <div className="mb-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signup');
+                        setMessage('');
+                      }}
+                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                        mode === 'signup'
+                          ? 'bg-white text-emerald-700 shadow-sm'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      Criar conta
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('login');
+                        setMessage('');
+                      }}
+                      className={`rounded-xl px-4 py-3 text-sm font-bold transition ${
+                        mode === 'login'
+                          ? 'bg-white text-emerald-700 shadow-sm'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      Já tenho conta
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="relative">
+                      <Mail
+                        size={18}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+                      <input
+                        type="email"
+                        placeholder="E-mail"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="relative">
+                      <Lock
+                        size={18}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
+                      <input
+                        type="password"
+                        placeholder="Senha"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
+                      />
+                    </div>
+
+                    {mode === 'signup' && (
+                      <div className="relative">
+                        <ShieldCheck
+                          size={18}
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                        />
+                        <input
+                          type="password"
+                          placeholder="Confirmar senha"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 outline-none transition focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-2xl border-2 border-slate-950 bg-emerald-600 px-5 py-4 text-base font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {loading
+                        ? 'Aguarde...'
+                        : mode === 'signup'
+                        ? 'Cadastrar'
+                        : 'Entrar'}
+                    </button>
+                  </form>
+
+                  {mode === 'signup' && (
+                    <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                      <p className="text-sm leading-6 text-emerald-800">
+                        <strong>Atenção:</strong> o pagamento será cobrado somente
+                        após você entrar com seu usuário e senha pela primeira vez.
+                      </p>
+                    </div>
+                  )}
+
+                  {mode === 'login' && (
+                    <div className="mt-5 text-center">
+                      <Link
+                        href="/auth/reset-password"
+                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+                      >
+                        Esqueci minha senha
+                      </Link>
+                    </div>
+                  )}
+
+                  {message && (
+                    <div
+                      className={`mt-5 rounded-2xl px-4 py-4 text-sm ${
+                        message.toLowerCase().includes('sucesso')
+                          ? 'bg-emerald-50 text-emerald-800'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {message}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-5">
+                  <div className="rounded-[1.75rem] border border-emerald-100 bg-emerald-50 p-6 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white">
+                      <CheckCircle2 size={32} />
+                    </div>
+
+                    <h3 className="mt-4 text-2xl font-black text-slate-950">
+                      Cadastro realizado com sucesso!
+                    </h3>
+
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      Sua conta foi criada com sucesso. Agora clique no botão abaixo
+                      para entrar no sistema e seguir com o primeiro acesso.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                    <p className="text-sm leading-6 text-amber-800">
+                      <strong>Importante:</strong> o pagamento será cobrado após
+                      você entrar com seu usuário e senha pela primeira vez.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleEnterAndPay}
+                    disabled={loading}
+                    className="w-full rounded-2xl border-2 border-slate-950 bg-emerald-600 px-5 py-4 text-base font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {loading ? 'Aguarde...' : 'Entrar e pagar'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSuccessRegistered(false);
+                      setMode('login');
+                      setMessage('');
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-base font-bold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Já tenho conta
+                  </button>
+
+                  {message && (
+                    <div className="rounded-2xl bg-slate-100 px-4 py-4 text-sm text-slate-700">
+                      {message}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-[1.75rem] bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:hidden">
+            <p className="text-sm font-black text-slate-950">
+              Pagamento no primeiro acesso
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              O pagamento será cobrado somente depois que você entrar com seu
+              e-mail e senha pela primeira vez.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
