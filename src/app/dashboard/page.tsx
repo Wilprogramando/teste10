@@ -258,8 +258,8 @@ export default async function DashboardPage() {
                 </h2>
 
                 <p className="mt-2 text-sm text-slate-500">
-                  Complete treino, alimentação e hábito saudável. O dia só entra
-                  em “Dias concluídos” depois da meia-noite.
+                  Complete treino, alimentação e hábito saudável. O dia concluído
+                  só entra na contagem depois da meia-noite.
                 </p>
               </div>
 
@@ -413,7 +413,7 @@ export default async function DashboardPage() {
 
               <p className="mt-2 text-sm leading-6 text-emerald-50">
                 Cada dia feito constrói sua transformação. A contagem oficial de
-                dias concluídos atualiza após virar o dia.
+                dias concluídos atualiza depois que o dia vira.
               </p>
             </div>
           </div>
