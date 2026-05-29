@@ -271,15 +271,11 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">
-                      nível
-                    </p>
-                    <p className="mt-2 text-lg font-black text-white">
-                      Do zero
-                    </p>
-                  </div>
+                <div className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">
+                    nível
+                  </p>
+                  <p className="mt-2 text-lg font-black text-white">Do zero</p>
                 </div>
 
                 <div className="mt-4 rounded-[1.8rem] bg-gradient-to-r from-orange-500/15 to-blue-500/15 p-5">
@@ -382,34 +378,34 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-2">
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-4 backdrop-blur-sm md:p-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[1.5rem] bg-[#121d32] p-4 md:p-5">
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+              <div className="grid grid-cols-2 gap-3 md:gap-5">
+                <div className="rounded-[1.5rem] bg-[#121d32] p-3 md:p-5">
+                  <div className="flex h-full flex-col rounded-[1.5rem] border border-white/10 bg-white/5 p-4 text-center md:p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 md:text-xs">
                       antes
                     </p>
 
-                    <div className="mt-5 flex h-40 items-center justify-center rounded-[1.5rem] bg-slate-800/60 md:h-48">
-                      <span className="text-5xl md:text-6xl">😞</span>
+                    <div className="mt-4 flex h-32 items-center justify-center rounded-[1.5rem] bg-slate-800/60 md:h-48">
+                      <span className="text-4xl md:text-6xl">😞</span>
                     </div>
 
-                    <p className="mt-4 text-sm leading-6 text-slate-300">
+                    <p className="mt-4 text-xs font-semibold leading-5 text-slate-300 md:text-sm md:leading-6">
                       Falta de disposição e dificuldade para manter rotina.
                     </p>
                   </div>
                 </div>
 
-                <div className="rounded-[1.5rem] bg-gradient-to-br from-orange-500/20 to-blue-500/20 p-4 md:p-5">
-                  <div className="rounded-[1.5rem] border border-orange-400/20 bg-white/10 p-5 text-center backdrop-blur-sm">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-200">
+                <div className="rounded-[1.5rem] bg-gradient-to-br from-orange-500/20 to-blue-500/20 p-3 md:p-5">
+                  <div className="flex h-full flex-col rounded-[1.5rem] border border-orange-400/20 bg-white/10 p-4 text-center backdrop-blur-sm md:p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-200 md:text-xs">
                       depois
                     </p>
 
-                    <div className="mt-5 flex h-40 items-center justify-center rounded-[1.5rem] bg-white/10 md:h-48">
-                      <span className="text-5xl md:text-6xl">💪</span>
+                    <div className="mt-4 flex h-32 items-center justify-center rounded-[1.5rem] bg-white/10 md:h-48">
+                      <span className="text-4xl md:text-6xl">💪</span>
                     </div>
 
-                    <p className="mt-4 text-sm leading-6 text-slate-100">
+                    <p className="mt-4 text-xs font-semibold leading-5 text-slate-100 md:text-sm md:leading-6">
                       Mais energia, foco, disciplina e resultados reais.
                     </p>
                   </div>
@@ -645,28 +641,11 @@ export default function HomePage() {
       </section>
 
       <footer className="border-t border-white/10 bg-[#060b16]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-6">
-          <div>
-            <p className="text-lg font-black text-white">Jornada Seu Ademir</p>
-            <p className="mt-2 text-sm text-slate-400">
-              Disciplina, evolução e transformação em um só lugar.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-sm text-slate-400 md:gap-6">
-            <a href="#" className="transition hover:text-white">
-              TikTok
-            </a>
-            <a href="#" className="transition hover:text-white">
-              Termos
-            </a>
-            <a href="#" className="transition hover:text-white">
-              Privacidade
-            </a>
-            <a href="#" className="transition hover:text-white">
-              Contato
-            </a>
-          </div>
+        <div className="mx-auto max-w-7xl px-4 py-8 text-center md:px-6">
+          <p className="text-lg font-black text-white">Jornada Seu Ademir</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Disciplina, evolução e transformação em um só lugar.
+          </p>
         </div>
       </footer>
     </main>
