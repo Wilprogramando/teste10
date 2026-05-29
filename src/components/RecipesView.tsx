@@ -13,7 +13,6 @@ import {
   Utensils,
 } from 'lucide-react';
 import type { Recipe } from '@/app/receitas/page';
-import ShaderBackground from '@/components/ui/shader-background';
 
 type Category = {
   key: string;
@@ -227,7 +226,6 @@ function getCategoryKey(category?: string | null) {
 
 function getCategoryByRecipe(recipe: Recipe) {
   const key = getCategoryKey(recipe.category);
-
   return categories.find((category) => category.key === key) ?? categories[1];
 }
 
@@ -409,11 +407,18 @@ export function RecipesView({
 
   return (
     <div className="relative -mx-4 min-h-screen overflow-hidden px-4 pb-10 md:-mx-6 md:px-6">
-      <ShaderBackground className="absolute inset-0 -z-10 h-full w-full opacity-80" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-white/35" />
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-[-120px] top-[-120px] h-[360px] w-[360px] rounded-full bg-emerald-200/60 blur-3xl" />
+        <div className="absolute right-[-140px] top-[220px] h-[420px] w-[420px] rounded-full bg-teal-200/60 blur-3xl" />
+        <div className="absolute bottom-[-180px] left-1/3 h-[420px] w-[420px] rounded-full bg-lime-100/70 blur-3xl" />
+
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(236,253,245,0.95),rgba(240,253,250,0.75),rgba(255,255,255,0.9))]" />
+
+        <div className="absolute inset-0 opacity-[0.32] [background-image:radial-gradient(circle_at_1px_1px,rgba(5,150,105,0.28)_1px,transparent_0)] [background-size:28px_28px]" />
+      </div>
 
       <div className="relative space-y-6">
-        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
+        <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-600 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
           <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_top_right,rgba(255,255,255,0.35),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(167,243,208,0.28),transparent_28%)]" />
 
           <div className="relative">
