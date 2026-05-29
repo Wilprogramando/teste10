@@ -114,22 +114,22 @@ export default function ShaderBackground({
   `;
 
   function loadShader(
-    gl: WebGLRenderingContext,
+    glContext: WebGLRenderingContext,
     type: number,
     source: string
   ) {
-    const shader = gl.createShader(type);
+    const shader = glContext.createShader(type);
 
     if (!shader) {
       return null;
     }
 
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
+    glContext.shaderSource(shader, source);
+    glContext.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error('Shader compile error:', gl.getShaderInfoLog(shader));
-      gl.deleteShader(shader);
+    if (!glContext.getShaderParameter(shader, glContext.COMPILE_STATUS)) {
+      console.error('Shader compile error:', glContext.getShaderInfoLog(shader));
+      glContext.deleteShader(shader);
       return null;
     }
 
@@ -137,34 +137,43 @@ export default function ShaderBackground({
   }
 
   function initShaderProgram(
-    gl: WebGLRenderingContext,
+    glContext: WebGLRenderingContext,
     vertexSource: string,
     fragmentSource: string
   ) {
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vertexSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+    const vertexShader = loadShader(
+      glContext,
+      glContext.VERTEX_SHADER,
+      vertexSource
+    );
+
+    const fragmentShader = loadShader(
+      glContext,
+      glContext.FRAGMENT_SHADER,
+      fragmentSource
+    );
 
     if (!vertexShader || !fragmentShader) {
       return null;
     }
 
-    const shaderProgram = gl.createProgram();
+    const shaderProgram = glContext.createProgram();
 
     if (!shaderProgram) {
       return null;
     }
 
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
+    glContext.attachShader(shaderProgram, vertexShader);
+    glContext.attachShader(shaderProgram, fragmentShader);
+    glContext.linkProgram(shaderProgram);
 
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    if (!glContext.getProgramParameter(shaderProgram, glContext.LINK_STATUS)) {
       console.error(
         'Shader program link error:',
-        gl.getProgramInfoLog(shaderProgram)
+        glContext.getProgramInfoLog(shaderProgram)
       );
 
-      gl.deleteProgram(shaderProgram);
+      glContext.deleteProgram(shaderProgram);
       return null;
     }
 
@@ -172,67 +181,73 @@ export default function ShaderBackground({
   }
 
   useEffect(() => {
-    const initialCanvas = canvasRef.current;
+    const canvas = canvasRef.current;
 
-    if (!initialCanvas) {
+    if (!canvas) {
       return;
     }
 
-    const gl = initialCanvas.getContext('webgl', {
+    const context = canvas.getContext('webgl', {
       alpha: true,
       antialias: true,
       preserveDrawingBuffer: false,
     });
 
-    if (!gl) {
+    if (!context) {
       console.warn('WebGL não é suportado neste navegador.');
       return;
     }
 
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    const glContext: WebGLRenderingContext = context;
+
+    const shaderProgram = initShaderProgram(glContext, vsSource, fsSource);
 
     if (!shaderProgram) {
       return;
     }
 
-    const positionBuffer = gl.createBuffer();
+    const positionBuffer = glContext.createBuffer();
 
     if (!positionBuffer) {
       return;
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    glContext.bindBuffer(glContext.ARRAY_BUFFER, positionBuffer);
 
     const positions = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0];
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    glContext.bufferData(
+      glContext.ARRAY_BUFFER,
+      new Float32Array(positions),
+      glContext.STATIC_DRAW
+    );
 
-    const vertexPosition = gl.getAttribLocation(
+    const vertexPosition = glContext.getAttribLocation(
       shaderProgram,
       'aVertexPosition'
     );
 
-    const resolutionLocation = gl.getUniformLocation(
+    const resolutionLocation = glContext.getUniformLocation(
       shaderProgram,
       'iResolution'
     );
 
-    const timeLocation = gl.getUniformLocation(shaderProgram, 'iTime');
+    const timeLocation = glContext.getUniformLocation(shaderProgram, 'iTime');
 
     function resizeCanvas() {
-      const canvas = canvasRef.current;
+      const currentCanvas = canvasRef.current;
 
-      if (!canvas) {
+      if (!currentCanvas) {
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
+      const rect = currentCanvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      currentCanvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      currentCanvas.height = Math.max(1, Math.floor(rect.height * dpr));
 
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      glContext.viewport(0, 0, currentCanvas.width, currentCanvas.height);
     }
 
     resizeCanvas();
@@ -242,27 +257,32 @@ export default function ShaderBackground({
     const startTime = Date.now();
 
     function render() {
-      const canvas = canvasRef.current;
+      const currentCanvas = canvasRef.current;
 
-      if (!canvas) {
+      if (!currentCanvas) {
         return;
       }
 
       const currentTime = (Date.now() - startTime) / 1000;
 
-      gl.clearColor(0.9, 1.0, 0.94, 1.0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      glContext.clearColor(0.9, 1.0, 0.94, 1.0);
+      glContext.clear(glContext.COLOR_BUFFER_BIT);
 
-      gl.useProgram(shaderProgram);
+      glContext.useProgram(shaderProgram);
 
-      gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-      gl.uniform1f(timeLocation, currentTime);
+      glContext.uniform2f(
+        resolutionLocation,
+        currentCanvas.width,
+        currentCanvas.height
+      );
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-      gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(vertexPosition);
+      glContext.uniform1f(timeLocation, currentTime);
 
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      glContext.bindBuffer(glContext.ARRAY_BUFFER, positionBuffer);
+      glContext.vertexAttribPointer(vertexPosition, 2, glContext.FLOAT, false, 0, 0);
+      glContext.enableVertexAttribArray(vertexPosition);
+
+      glContext.drawArrays(glContext.TRIANGLE_STRIP, 0, 4);
 
       animationFrameRef.current = requestAnimationFrame(render);
     }
@@ -276,8 +296,8 @@ export default function ShaderBackground({
         cancelAnimationFrame(animationFrameRef.current);
       }
 
-      gl.deleteBuffer(positionBuffer);
-      gl.deleteProgram(shaderProgram);
+      glContext.deleteBuffer(positionBuffer);
+      glContext.deleteProgram(shaderProgram);
     };
   }, []);
 
