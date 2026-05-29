@@ -2,737 +2,849 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Activity,
-  CalendarClock,
-  CalendarDays,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Clock,
+  ChevronRight,
+  Clock3,
   Dumbbell,
   Flame,
-  Home,
   Lock,
+  PlayCircle,
   ShieldCheck,
-  Target,
-  Timer,
-  Unlock,
+  Sparkles,
+  Trophy,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabaseClient';
 import type {
   WorkoutExerciseItem,
   WorkoutPlanItem,
 } from '@/app/treinos/page';
 
+type WorkoutPlanViewProps = {
+  plans: WorkoutPlanItem[];
+  exercises: WorkoutExerciseItem[];
+  userStartedAt: string;
+};
+
 const fallbackPlans: WorkoutPlanItem[] = [
   {
-    id: 'fallback-1',
+    id: 'fallback-week-1-a',
     week_number: 1,
     day_number: 1,
-    day_name: 'Segunda-feira',
+    day_name: 'Treino A',
     title: 'Treino A',
-    focus: 'Peito, ombros e tríceps',
+    focus: 'Corpo todo',
+    intensity: 'Leve',
+    notes:
+      'Treino inicial para ativar o corpo, criar consistência e começar com segurança.',
+  },
+  {
+    id: 'fallback-week-1-b',
+    week_number: 1,
+    day_number: 2,
+    day_name: 'Treino B',
+    title: 'Treino B',
+    focus: 'Pernas e glúteos',
     intensity: 'Leve a moderada',
     notes:
-      'Semana de adaptação. Foque em aprender os movimentos e manter boa postura.',
+      'Foco em membros inferiores com movimentos simples e controle corporal.',
   },
   {
-    id: 'fallback-2',
-    week_number: 1,
-    day_number: 2,
-    day_name: 'Quarta-feira',
-    title: 'Treino B',
-    focus: 'Costas e bíceps',
-    intensity: 'Leve a moderada',
-    notes: 'Controle a execução e evite puxar cargas acima do necessário.',
-  },
-  {
-    id: 'fallback-3',
+    id: 'fallback-week-1-c',
     week_number: 1,
     day_number: 3,
-    day_name: 'Sexta-feira',
+    day_name: 'Treino C',
     title: 'Treino C',
-    focus: 'Pernas e abdômen',
+    focus: 'Superiores e abdômen',
+    intensity: 'Leve a moderada',
+    notes:
+      'Trabalho para braços, peito, costas e região central do corpo.',
+  },
+  {
+    id: 'fallback-week-2-a',
+    week_number: 2,
+    day_number: 1,
+    day_name: 'Treino A',
+    title: 'Treino A',
+    focus: 'Corpo todo',
     intensity: 'Moderada',
     notes:
-      'Priorize amplitude segura, estabilidade e respiração durante os exercícios.',
+      'Segunda semana com mais controle, volume e evolução dos movimentos.',
   },
   {
-    id: 'fallback-4',
-    week_number: 2,
-    day_number: 1,
-    day_name: 'Segunda-feira',
-    title: 'Treino A',
-    focus: 'Peito, ombros e tríceps',
-    intensity: 'Moderada',
-    notes: 'Aumente levemente a carga se a execução estiver segura.',
-  },
-  {
-    id: 'fallback-5',
+    id: 'fallback-week-2-b',
     week_number: 2,
     day_number: 2,
-    day_name: 'Quarta-feira',
+    day_name: 'Treino B',
     title: 'Treino B',
-    focus: 'Costas e bíceps',
+    focus: 'Pernas e glúteos',
     intensity: 'Moderada',
-    notes: 'Mantenha descanso controlado e boa contração muscular.',
+    notes:
+      'Treino para fortalecer pernas, glúteos e resistência muscular.',
   },
   {
-    id: 'fallback-6',
+    id: 'fallback-week-2-c',
     week_number: 2,
     day_number: 3,
-    day_name: 'Sexta-feira',
+    day_name: 'Treino C',
     title: 'Treino C',
-    focus: 'Pernas e abdômen',
+    focus: 'Superiores e abdômen',
     intensity: 'Moderada',
-    notes: 'Busque constância. Não sacrifique postura por carga.',
+    notes:
+      'Treino para membros superiores, postura, abdômen e estabilidade.',
   },
   {
-    id: 'fallback-7',
+    id: 'fallback-week-3-a',
     week_number: 3,
     day_number: 1,
-    day_name: 'Segunda-feira',
+    day_name: 'Treino A',
     title: 'Treino A',
-    focus: 'Peito, ombros e tríceps',
+    focus: 'Corpo todo',
     intensity: 'Moderada a alta',
-    notes: 'Semana de progressão. Aumente carga ou repetições com segurança.',
+    notes:
+      'Semana de progressão para aumentar gasto calórico e condicionamento.',
   },
   {
-    id: 'fallback-8',
+    id: 'fallback-week-3-b',
     week_number: 3,
     day_number: 2,
-    day_name: 'Quarta-feira',
+    day_name: 'Treino B',
     title: 'Treino B',
-    focus: 'Costas e bíceps',
+    focus: 'Inferiores',
     intensity: 'Moderada a alta',
-    notes: 'Controle a fase de descida dos movimentos e mantenha estabilidade.',
+    notes:
+      'Treino mais intenso para membros inferiores, resistência e força.',
   },
   {
-    id: 'fallback-9',
+    id: 'fallback-week-3-c',
     week_number: 3,
     day_number: 3,
-    day_name: 'Sexta-feira',
+    day_name: 'Treino C',
     title: 'Treino C',
-    focus: 'Pernas e abdômen',
-    intensity: 'Moderada a alta',
-    notes: 'Atenção a joelhos, lombar e respiração durante os exercícios.',
-  },
-  {
-    id: 'fallback-10',
-    week_number: 4,
-    day_number: 1,
-    day_name: 'Segunda-feira',
-    title: 'Treino A',
     focus: 'Superiores',
-    intensity: 'Alta controlada',
-    notes: 'Última semana. Treine forte, mas com técnica limpa.',
+    intensity: 'Moderada a alta',
+    notes:
+      'Treino para superiores com foco em evolução, postura e definição.',
   },
   {
-    id: 'fallback-11',
+    id: 'fallback-week-4-a',
+    week_number: 4,
+    day_number: 1,
+    day_name: 'Treino A',
+    title: 'Treino A',
+    focus: 'Corpo todo',
+    intensity: 'Alta',
+    notes:
+      'Semana final com mais intensidade para consolidar a evolução da jornada.',
+  },
+  {
+    id: 'fallback-week-4-b',
     week_number: 4,
     day_number: 2,
-    day_name: 'Quarta-feira',
+    day_name: 'Treino B',
     title: 'Treino B',
-    focus: 'Costas, bíceps e core',
-    intensity: 'Alta controlada',
-    notes: 'Mantenha concentração e registre sua evolução.',
+    focus: 'Pernas e glúteos',
+    intensity: 'Alta',
+    notes:
+      'Treino forte para membros inferiores, resistência e gasto calórico.',
   },
   {
-    id: 'fallback-12',
+    id: 'fallback-week-4-c',
     week_number: 4,
     day_number: 3,
-    day_name: 'Sexta-feira',
+    day_name: 'Treino C',
     title: 'Treino C',
-    focus: 'Pernas completas',
-    intensity: 'Alta controlada',
-    notes: 'Finalize o ciclo com disciplina, controle e boa recuperação.',
+    focus: 'Superiores e abdômen',
+    intensity: 'Alta',
+    notes:
+      'Treino final para superiores, abdômen e condicionamento geral.',
   },
 ];
 
 const fallbackExercises: WorkoutExerciseItem[] = [
   {
-    id: 'ex-1',
-    workout_plan_id: 'fallback-1',
-    name: 'Supino com halteres',
+    id: 'fallback-exercise-1',
+    workout_plan_id: 'fallback-week-1-a',
+    name: 'Agachamento livre',
     sets: '3',
-    reps: '10 a 12',
-    rest_seconds: 60,
+    reps: '12',
+    rest_seconds: 45,
     instructions:
-      'Deite no banco, mantenha os pés firmes no chão e empurre os halteres para cima sem travar os cotovelos.',
+      'Mantenha os pés afastados na largura dos ombros, desça com controle e suba contraindo pernas e glúteos.',
     precautions:
-      'Evite abrir demais os cotovelos e não use carga que comprometa a estabilidade.',
+      'Não deixe os joelhos fecharem para dentro. Mantenha a coluna neutra.',
     image_url: null,
   },
   {
-    id: 'ex-2',
-    workout_plan_id: 'fallback-1',
-    name: 'Desenvolvimento de ombros',
+    id: 'fallback-exercise-2',
+    workout_plan_id: 'fallback-week-1-a',
+    name: 'Flexão adaptada',
     sets: '3',
-    reps: '10 a 12',
-    rest_seconds: 60,
-    instructions:
-      'Empurre os halteres acima da cabeça com o tronco firme e abdômen contraído.',
-    precautions: 'Não arqueie a lombar. Reduza a carga se perder controle.',
-    image_url: null,
-  },
-  {
-    id: 'ex-3',
-    workout_plan_id: 'fallback-1',
-    name: 'Tríceps na polia',
-    sets: '3',
-    reps: '12 a 15',
+    reps: '8 a 12',
     rest_seconds: 45,
     instructions:
-      'Mantenha os cotovelos próximos ao corpo e estenda os braços até contrair o tríceps.',
-    precautions: 'Evite balançar o tronco durante o movimento.',
+      'Apoie os joelhos no chão se necessário. Desça o peito com controle e empurre o chão para subir.',
+    precautions:
+      'Evite deixar o quadril cair. Mantenha abdômen firme.',
     image_url: null,
   },
   {
-    id: 'ex-4',
-    workout_plan_id: 'fallback-2',
-    name: 'Puxada frontal',
+    id: 'fallback-exercise-3',
+    workout_plan_id: 'fallback-week-1-a',
+    name: 'Prancha',
     sets: '3',
-    reps: '10 a 12',
-    rest_seconds: 60,
-    instructions:
-      'Puxe a barra em direção ao peito, mantendo o tronco firme e os ombros para baixo.',
-    precautions: 'Não puxe atrás da nuca e evite impulso excessivo.',
-    image_url: null,
-  },
-  {
-    id: 'ex-5',
-    workout_plan_id: 'fallback-2',
-    name: 'Remada baixa',
-    sets: '3',
-    reps: '10 a 12',
-    rest_seconds: 60,
-    instructions:
-      'Puxe o pegador em direção ao abdômen, aproximando as escápulas no final.',
-    precautions: 'Não curve a lombar e mantenha controle na volta.',
-    image_url: null,
-  },
-  {
-    id: 'ex-6',
-    workout_plan_id: 'fallback-2',
-    name: 'Rosca direta',
-    sets: '3',
-    reps: '12',
+    reps: '20 a 30 segundos',
     rest_seconds: 45,
     instructions:
-      'Flexione os cotovelos sem balançar o corpo e desça a barra com controle.',
-    precautions: 'Evite jogar o tronco para trás para levantar a carga.',
-    image_url: null,
-  },
-  {
-    id: 'ex-7',
-    workout_plan_id: 'fallback-3',
-    name: 'Agachamento livre ou guiado',
-    sets: '3',
-    reps: '10 a 12',
-    rest_seconds: 75,
-    instructions:
-      'Desça mantendo o peito aberto, joelhos alinhados e pés firmes no chão.',
-    precautions: 'Não deixe os joelhos colapsarem para dentro.',
-    image_url: null,
-  },
-  {
-    id: 'ex-8',
-    workout_plan_id: 'fallback-3',
-    name: 'Leg press',
-    sets: '3',
-    reps: '12',
-    rest_seconds: 75,
-    instructions:
-      'Empurre a plataforma com controle e desça até uma amplitude confortável.',
-    precautions: 'Não trave os joelhos no topo do movimento.',
-    image_url: null,
-  },
-  {
-    id: 'ex-9',
-    workout_plan_id: 'fallback-3',
-    name: 'Prancha abdominal',
-    sets: '3',
-    reps: '30 a 45 segundos',
-    rest_seconds: 45,
-    instructions:
-      'Mantenha corpo alinhado, abdômen contraído e respiração controlada.',
-    precautions: 'Não deixe o quadril cair e evite prender a respiração.',
+      'Apoie antebraços e pontas dos pés no chão, mantendo o corpo alinhado.',
+    precautions:
+      'Não prenda a respiração. Contraia abdômen e glúteos.',
     image_url: null,
   },
 ];
 
+function getTodayInBrazil() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date());
+}
+
+function getWorkoutLetter(index: number) {
+  return String.fromCharCode(65 + index);
+}
+
 function getUnlockedWeek(startDate: string) {
-  const start = new Date(startDate).getTime();
-  const now = Date.now();
-  const diff = now - start;
-  const sevenDays = 7 * 24 * 60 * 60 * 1000;
-
-  return Math.min(Math.max(Math.floor(diff / sevenDays) + 1, 1), 4);
-}
-
-function getNextUnlockDate(startDate: string, nextWeek: number) {
   const start = new Date(startDate);
-  start.setDate(start.getDate() + (nextWeek - 1) * 7);
-  return start;
+  const now = new Date();
+
+  const diffMs = now.getTime() - start.getTime();
+  const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+  const unlockedWeek = Math.floor(diffDays / 7) + 1;
+
+  return Math.min(Math.max(unlockedWeek, 1), 4);
 }
 
-function formatCountdown(ms: number) {
-  if (ms <= 0) {
-    return 'Liberado';
+function getNextUnlockDate(startDate: string, unlockedWeek: number) {
+  if (unlockedWeek >= 4) {
+    return null;
   }
 
-  const totalSeconds = Math.floor(ms / 1000);
+  const start = new Date(startDate);
+  const nextUnlock = new Date(start);
+
+  nextUnlock.setDate(start.getDate() + unlockedWeek * 7);
+
+  return nextUnlock;
+}
+
+function formatCountdown(targetDate: Date | null) {
+  if (!targetDate) {
+    return 'Todas as semanas foram liberadas.';
+  }
+
+  const now = new Date();
+  const diffMs = targetDate.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return 'Nova semana liberada.';
+  }
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+
   const days = Math.floor(totalSeconds / 86400);
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
 
-  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
-}
-
-function getExercisesForPlan(
-  plan: WorkoutPlanItem,
-  exercises: WorkoutExerciseItem[]
-) {
-  const directExercises = exercises.filter(
-    (exercise) => exercise.workout_plan_id === plan.id
-  );
-
-  if (directExercises.length > 0) return directExercises;
-
-  const fallbackByPlan = fallbackExercises.filter(
-    (exercise) => exercise.workout_plan_id === plan.id
-  );
-
-  if (fallbackByPlan.length > 0) return fallbackByPlan;
-
-  const focus = plan.focus.toLowerCase();
-
-  if (focus.includes('perna')) {
-    return fallbackExercises.filter(
-      (exercise) => exercise.workout_plan_id === 'fallback-3'
-    );
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}min`;
   }
 
-  if (
-    focus.includes('costas') ||
-    focus.includes('bíceps') ||
-    focus.includes('biceps')
-  ) {
-    return fallbackExercises.filter(
-      (exercise) => exercise.workout_plan_id === 'fallback-2'
-    );
+  return `${hours}h ${minutes}min`;
+}
+
+async function markWorkoutDoneInDatabase() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return;
   }
 
-  return fallbackExercises.filter(
-    (exercise) => exercise.workout_plan_id === 'fallback-1'
-  );
-}
+  const today = getTodayInBrazil();
 
-function WeekButton({
-  week,
-  selectedWeek,
-  unlockedWeek,
-  countdown,
-  setSelectedWeek,
-}: {
-  week: number;
-  selectedWeek: number;
-  unlockedWeek: number;
-  countdown: string;
-  setSelectedWeek: (week: number) => void;
-}) {
-  const active = selectedWeek === week;
-  const locked = week > unlockedWeek;
+  const { data: existingProgress } = await supabase
+    .from('daily_progress')
+    .select('id, meals_ok, habit_done')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .maybeSingle();
 
-  return (
-    <button
-      type="button"
-      disabled={locked}
-      onClick={() => setSelectedWeek(week)}
-      className={`relative overflow-hidden rounded-3xl border p-4 text-left transition ${
-        active
-          ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
-          : locked
-            ? 'cursor-not-allowed border-slate-100 bg-slate-100 text-slate-400'
-            : 'border-slate-100 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-black uppercase tracking-wide opacity-80">
-            Semana
-          </p>
+  if (existingProgress?.id) {
+    await supabase
+      .from('daily_progress')
+      .update({
+        workout_done: true,
+        completed: Boolean(existingProgress.meals_ok && existingProgress.habit_done),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingProgress.id);
 
-          <p className="mt-1 text-3xl font-black">{week}</p>
-        </div>
+    return;
+  }
 
-        <div
-          className={`flex h-9 w-9 items-center justify-center rounded-2xl ${
-            active
-              ? 'bg-white/20 text-white'
-              : locked
-                ? 'bg-white text-slate-400'
-                : 'bg-emerald-50 text-emerald-700'
-          }`}
-        >
-          {locked ? <Lock size={18} /> : <Unlock size={18} />}
-        </div>
-      </div>
-
-      <p className="mt-2 text-xs font-semibold opacity-80">
-        {week === 1 && 'Adaptação'}
-        {week === 2 && 'Consistência'}
-        {week === 3 && 'Progressão'}
-        {week === 4 && 'Evolução'}
-      </p>
-
-      {locked && week === unlockedWeek + 1 && (
-        <div className="mt-3 rounded-2xl bg-white/70 p-2">
-          <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">
-            Libera em
-          </p>
-          <p className="mt-1 text-xs font-black text-slate-700">
-            {countdown}
-          </p>
-        </div>
-      )}
-    </button>
-  );
-}
-
-function ExerciseCard({ exercise }: { exercise: WorkoutExerciseItem }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="rounded-3xl bg-slate-50 p-4">
-      <div className="flex gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
-          <Dumbbell size={22} />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <h4 className="font-black leading-tight text-slate-950">
-            {exercise.name}
-          </h4>
-
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <div className="rounded-2xl bg-white p-3">
-              <p className="text-[10px] font-black uppercase text-slate-400">
-                Séries
-              </p>
-              <p className="text-sm font-black text-slate-950">
-                {exercise.sets}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-3">
-              <p className="text-[10px] font-black uppercase text-slate-400">
-                Reps
-              </p>
-              <p className="text-sm font-black text-slate-950">
-                {exercise.reps}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-3">
-              <p className="text-[10px] font-black uppercase text-slate-400">
-                Desc.
-              </p>
-              <p className="text-sm font-black text-slate-950">
-                {exercise.rest_seconds}s
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="mt-3 flex w-full items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700"
-          >
-            {open ? 'Ocultar execução' : 'Como executar'}
-            {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-          </button>
-
-          {open && (
-            <div className="mt-3 grid gap-3">
-              <div className="rounded-2xl bg-white p-4">
-                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-700">
-                  <Activity size={16} />
-                  Execução
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {exercise.instructions}
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-white p-4">
-                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-orange-600">
-                  <ShieldCheck size={16} />
-                  Cuidados
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {exercise.precautions}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function WorkoutDayCard({
-  plan,
-  exercises,
-}: {
-  plan: WorkoutPlanItem;
-  exercises: WorkoutExerciseItem[];
-}) {
-  return (
-    <article className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm">
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="inline-flex rounded-full bg-emerald-600 px-4 py-2 text-xs font-black uppercase tracking-wide text-white">
-              {plan.day_name}
-            </span>
-
-            <h3 className="mt-4 text-2xl font-black leading-tight text-slate-950">
-              {plan.title}
-            </h3>
-
-            <p className="mt-2 text-sm font-semibold text-slate-600">
-              {plan.focus}
-            </p>
-          </div>
-
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-white text-emerald-700 shadow-sm">
-            <Dumbbell size={27} />
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white/80 p-3">
-            <p className="flex items-center gap-2 text-xs font-black uppercase text-slate-500">
-              <Flame size={15} />
-              Intensidade
-            </p>
-            <p className="mt-1 text-sm font-black text-slate-950">
-              {plan.intensity}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-white/80 p-3">
-            <p className="flex items-center gap-2 text-xs font-black uppercase text-slate-500">
-              <Clock size={15} />
-              Duração
-            </p>
-            <p className="mt-1 text-sm font-black text-slate-950">
-              45 a 60 min
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-3 p-5">
-        <div className="rounded-3xl bg-emerald-50 p-4">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-700">
-            <Target size={16} />
-            Foco do dia
-          </p>
-          <p className="mt-2 text-sm font-semibold leading-6 text-emerald-900">
-            {plan.notes}
-          </p>
-        </div>
-
-        {exercises.map((exercise) => (
-          <ExerciseCard key={exercise.id} exercise={exercise} />
-        ))}
-      </div>
-    </article>
-  );
+  await supabase.from('daily_progress').insert({
+    user_id: user.id,
+    date: today,
+    workout_done: true,
+    meals_ok: false,
+    habit_done: false,
+    completed: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
 }
 
 export function WorkoutPlanView({
   plans,
   exercises,
   userStartedAt,
-}: {
-  plans: WorkoutPlanItem[];
-  exercises: WorkoutExerciseItem[];
-  userStartedAt: string;
-}) {
-  const workoutPlans = plans.length > 0 ? plans : fallbackPlans;
+}: WorkoutPlanViewProps) {
+  const availablePlans = plans.length > 0 ? plans : fallbackPlans;
+  const availableExercises = exercises.length > 0 ? exercises : fallbackExercises;
 
-  const [now, setNow] = useState(Date.now());
-  const [selectedWeek, setSelectedWeek] = useState(1);
+  const unlockedWeek = getUnlockedWeek(userStartedAt);
+  const nextUnlockDate = getNextUnlockDate(userStartedAt, unlockedWeek);
 
-  const unlockedWeek = useMemo(() => {
-    return getUnlockedWeek(userStartedAt);
-  }, [userStartedAt, now]);
+  const [selectedWeek, setSelectedWeek] = useState(unlockedWeek);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [completedPlanIds, setCompletedPlanIds] = useState<string[]>([]);
+  const [savingDone, setSavingDone] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const weeks = useMemo(() => {
-    return Array.from(new Set(workoutPlans.map((plan) => plan.week_number)))
-      .sort((a, b) => a - b)
-      .slice(0, 4);
-  }, [workoutPlans]);
+  const weekPlans = useMemo(() => {
+    return availablePlans
+      .filter((plan) => plan.week_number === selectedWeek)
+      .sort((a, b) => a.day_number - b.day_number);
+  }, [availablePlans, selectedWeek]);
 
-  const nextWeek = Math.min(unlockedWeek + 1, 4);
-  const hasNextWeek = unlockedWeek < 4;
-  const nextUnlockDate = getNextUnlockDate(userStartedAt, nextWeek);
-  const countdown = formatCountdown(nextUnlockDate.getTime() - now);
+  const selectedPlan = useMemo(() => {
+    return (
+      weekPlans.find((plan) => plan.id === selectedPlanId) ??
+      weekPlans[0] ??
+      null
+    );
+  }, [weekPlans, selectedPlanId]);
 
-  const selectedPlans = workoutPlans.filter(
-    (plan) => plan.week_number === selectedWeek
-  );
+  const selectedExercises = useMemo(() => {
+    if (!selectedPlan) {
+      return [];
+    }
+
+    return availableExercises.filter(
+      (exercise) => exercise.workout_plan_id === selectedPlan.id
+    );
+  }, [availableExercises, selectedPlan]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
+    if (weekPlans.length > 0) {
+      setSelectedPlanId((current) => {
+        const currentExists = weekPlans.some((plan) => plan.id === current);
 
-    return () => window.clearInterval(timer);
+        if (currentExists) {
+          return current;
+        }
+
+        return weekPlans[0].id;
+      });
+    }
+  }, [weekPlans]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('completed-workout-plans');
+
+    if (stored) {
+      try {
+        setCompletedPlanIds(JSON.parse(stored));
+      } catch {
+        setCompletedPlanIds([]);
+      }
+    }
   }, []);
 
-  useEffect(() => {
-    if (selectedWeek > unlockedWeek) {
-      setSelectedWeek(unlockedWeek);
+  function saveCompletedPlans(nextCompletedPlans: string[]) {
+    setCompletedPlanIds(nextCompletedPlans);
+    window.localStorage.setItem(
+      'completed-workout-plans',
+      JSON.stringify(nextCompletedPlans)
+    );
+  }
+
+  async function handleMarkAsDone() {
+    if (!selectedPlan) {
+      return;
     }
-  }, [selectedWeek, unlockedWeek]);
+
+    setSavingDone(true);
+    setMessage('');
+
+    const alreadyCompleted = completedPlanIds.includes(selectedPlan.id);
+
+    const nextCompletedPlans = alreadyCompleted
+      ? completedPlanIds
+      : [...completedPlanIds, selectedPlan.id];
+
+    saveCompletedPlans(nextCompletedPlans);
+
+    await markWorkoutDoneInDatabase();
+
+    setSavingDone(false);
+    setMessage('Treino marcado como feito. Excelente trabalho!');
+  }
+
+  function handleSelectWeek(week: number) {
+    if (week > unlockedWeek) {
+      return;
+    }
+
+    setSelectedWeek(week);
+    setMessage('');
+  }
+
+  const selectedPlanIndex = selectedPlan
+    ? weekPlans.findIndex((plan) => plan.id === selectedPlan.id)
+    : 0;
+
+  const selectedPlanLabel = `Treino ${getWorkoutLetter(
+    Math.max(selectedPlanIndex, 0)
+  )}`;
+
+  const selectedPlanDone = selectedPlan
+    ? completedPlanIds.includes(selectedPlan.id)
+    : false;
+
+  const weekProgress =
+    weekPlans.length > 0
+      ? Math.round(
+          (weekPlans.filter((plan) => completedPlanIds.includes(plan.id))
+            .length /
+            weekPlans.length) *
+            100
+        )
+      : 0;
 
   return (
     <div className="space-y-6 pb-10">
       <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-500 p-5 text-white shadow-xl shadow-emerald-100 md:p-8">
         <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-black uppercase tracking-wide">
           <Dumbbell size={16} />
-          Plano de treinos
+          Treinos
         </span>
 
-        <h1 className="mt-5 text-3xl font-black leading-tight md:text-5xl">
-          Treinos liberados semana por semana.
-        </h1>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.75fr] lg:items-end">
+          <div>
+            <h1 className="text-3xl font-black leading-tight md:text-5xl">
+              Escolha seu treino e marque sua evolução
+            </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
-          A próxima semana será liberada automaticamente a cada 7 dias,
-          contando a partir do primeiro login.
-        </p>
-
-        <div className="mt-6 grid gap-3 md:grid-cols-2">
-          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-50">
-              <Unlock size={15} />
-              Semana atual liberada
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50 md:text-base">
+              Toque em um treino para abrir os exercícios. Depois de concluir,
+              marque como feito para registrar seu progresso do dia.
             </p>
-            <p className="mt-2 text-3xl font-black">Semana {unlockedWeek}</p>
           </div>
 
-          <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-            <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-50">
-              <Timer size={15} />
+          <div className="rounded-[1.5rem] bg-white/15 p-5 backdrop-blur">
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-50">
+              Progresso da semana
+            </p>
+
+            <p className="mt-2 text-4xl font-black text-white">
+              {weekProgress}%
+            </p>
+
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-white transition-all"
+                style={{ width: `${weekProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-4">
+        {[1, 2, 3, 4].map((week) => {
+          const locked = week > unlockedWeek;
+          const active = selectedWeek === week;
+
+          return (
+            <button
+              key={week}
+              type="button"
+              onClick={() => handleSelectWeek(week)}
+              className={`rounded-[2rem] border p-5 text-left transition ${
+                active
+                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                  : locked
+                    ? 'border-slate-100 bg-slate-50 text-slate-400'
+                    : 'border-slate-100 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+              }`}
+            >
+              <div
+                className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${
+                  active
+                    ? 'bg-white/20 text-white'
+                    : locked
+                      ? 'bg-white text-slate-300'
+                      : 'bg-emerald-50 text-emerald-700'
+                }`}
+              >
+                {locked ? <Lock size={22} /> : <Trophy size={22} />}
+              </div>
+
+              <p className="text-sm font-black uppercase tracking-wide">
+                Semana {week}
+              </p>
+
+              <p
+                className={`mt-2 text-sm leading-6 ${
+                  active
+                    ? 'text-emerald-50'
+                    : locked
+                      ? 'text-slate-400'
+                      : 'text-slate-500'
+                }`}
+              >
+                {locked ? 'Bloqueada' : active ? 'Selecionada' : 'Liberada'}
+              </p>
+            </button>
+          );
+        })}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          <div className="mb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <PlayCircle size={24} />
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  Selecione o treino
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Clique em um card para abrir os exercícios.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {weekPlans.length > 0 ? (
+            <div className="grid gap-3">
+              {weekPlans.map((plan, index) => {
+                const active = selectedPlan?.id === plan.id;
+                const done = completedPlanIds.includes(plan.id);
+                const label = `Treino ${getWorkoutLetter(index)}`;
+
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedPlanId(plan.id);
+                      setMessage('');
+                    }}
+                    className={`rounded-3xl border p-4 text-left transition ${
+                      active
+                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                        : done
+                          ? 'border-emerald-200 bg-emerald-50 text-slate-800'
+                          : 'border-slate-100 bg-slate-50 text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+                            active
+                              ? 'bg-white/20 text-white'
+                              : done
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-white text-emerald-700'
+                          }`}
+                        >
+                          {done ? (
+                            <CheckCircle2 size={23} />
+                          ) : (
+                            <Dumbbell size={23} />
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate text-lg font-black">
+                            {label}
+                          </p>
+
+                          <p
+                            className={`mt-1 truncate text-sm ${
+                              active
+                                ? 'text-emerald-50'
+                                : done
+                                  ? 'text-emerald-700'
+                                  : 'text-slate-500'
+                            }`}
+                          >
+                            {plan.focus || 'Treino da jornada'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <ChevronRight
+                        size={20}
+                        className={
+                          active ? 'text-white' : 'text-slate-400'
+                        }
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-3xl bg-slate-50 p-6 text-center">
+              <p className="font-black text-slate-950">
+                Nenhum treino disponível nessa semana.
+              </p>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Cadastre treinos no banco de dados ou use o plano padrão.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+          {selectedPlan ? (
+            <>
+              <div className="mb-6 rounded-[1.75rem] bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white">
+                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                      {selectedPlanLabel}
+                    </p>
+
+                    <h2 className="mt-2 text-3xl font-black leading-tight">
+                      {selectedPlan.title || selectedPlanLabel}
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                      {selectedPlan.notes ||
+                        'Siga os exercícios abaixo com atenção e respeite seus limites.'}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`w-fit rounded-full px-4 py-2 text-xs font-black uppercase tracking-wide ${
+                      selectedPlanDone
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-white/10 text-slate-200'
+                    }`}
+                  >
+                    {selectedPlanDone ? 'Feito' : 'Pendente'}
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+                      Foco
+                    </p>
+                    <p className="mt-2 text-lg font-black">
+                      {selectedPlan.focus || 'Corpo todo'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+                      Intensidade
+                    </p>
+                    <p className="mt-2 text-lg font-black">
+                      {selectedPlan.intensity || 'Moderada'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleMarkAsDone}
+                  disabled={savingDone || selectedPlanDone}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-3xl px-6 py-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-80 ${
+                    selectedPlanDone
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  }`}
+                >
+                  <CheckCircle2 size={20} />
+                  {selectedPlanDone
+                    ? 'Treino já marcado como feito'
+                    : savingDone
+                      ? 'Salvando...'
+                      : 'Marcar treino como feito'}
+                </button>
+              </div>
+
+              {message && (
+                <div className="mb-6 rounded-3xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+                  {message}
+                </div>
+              )}
+
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                  <Flame size={22} />
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-black text-slate-950">
+                    Exercícios do treino
+                  </h3>
+
+                  <p className="text-sm text-slate-500">
+                    Execute em sequência e descanse conforme indicado.
+                  </p>
+                </div>
+              </div>
+
+              {selectedExercises.length > 0 ? (
+                <div className="grid gap-3">
+                  {selectedExercises.map((exercise, index) => (
+                    <div
+                      key={exercise.id}
+                      className="rounded-3xl border border-slate-100 bg-slate-50 p-4"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black text-emerald-700">
+                          {index + 1}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-lg font-black text-slate-950">
+                            {exercise.name}
+                          </h4>
+
+                          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                            <div className="rounded-2xl bg-white p-3">
+                              <p className="text-xs font-black uppercase text-slate-400">
+                                Séries
+                              </p>
+                              <p className="mt-1 font-black text-slate-950">
+                                {exercise.sets}
+                              </p>
+                            </div>
+
+                            <div className="rounded-2xl bg-white p-3">
+                              <p className="text-xs font-black uppercase text-slate-400">
+                                Repetições
+                              </p>
+                              <p className="mt-1 font-black text-slate-950">
+                                {exercise.reps}
+                              </p>
+                            </div>
+
+                            <div className="rounded-2xl bg-white p-3">
+                              <p className="text-xs font-black uppercase text-slate-400">
+                                Descanso
+                              </p>
+                              <p className="mt-1 font-black text-slate-950">
+                                {exercise.rest_seconds}s
+                              </p>
+                            </div>
+                          </div>
+
+                          {exercise.instructions && (
+                            <p className="mt-4 text-sm leading-6 text-slate-600">
+                              {exercise.instructions}
+                            </p>
+                          )}
+
+                          {exercise.precautions && (
+                            <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-3">
+                              <div className="flex gap-2">
+                                <ShieldCheck
+                                  size={18}
+                                  className="mt-0.5 shrink-0 text-amber-700"
+                                />
+
+                                <p className="text-sm leading-6 text-amber-800">
+                                  {exercise.precautions}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-slate-50 p-6 text-center">
+                  <p className="font-black text-slate-950">
+                    Nenhum exercício cadastrado.
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Cadastre exercícios para este treino no banco de dados.
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="rounded-3xl bg-slate-50 p-6 text-center">
+              <p className="font-black text-slate-950">
+                Selecione um treino para começar.
+              </p>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Os exercícios aparecerão aqui.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <Clock3 size={23} />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-black text-slate-950">
+                Liberação das próximas semanas
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Uma nova semana é liberada a cada 7 dias desde o seu primeiro
+                acesso.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-slate-50 px-5 py-4 text-left md:text-right">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-500">
               Próxima liberação
             </p>
 
-            {hasNextWeek ? (
-              <>
-                <p className="mt-2 text-3xl font-black">{countdown}</p>
-                <p className="mt-1 text-sm font-bold text-emerald-50">
-                  Para abrir a semana {nextWeek}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="mt-2 text-3xl font-black">Tudo liberado</p>
-                <p className="mt-1 text-sm font-bold text-emerald-50">
-                  Todas as semanas estão disponíveis.
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-            <CalendarClock size={23} />
-          </div>
-
-          <div>
-            <h2 className="text-lg font-black text-slate-950">
-              Liberação das semanas
-            </h2>
-            <p className="text-sm text-slate-500">
-              Semana 1 liberada no início. Semanas 2, 3 e 4 liberam a cada 7
-              dias.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {weeks.map((week) => (
-            <WeekButton
-              key={week}
-              week={week}
-              selectedWeek={selectedWeek}
-              unlockedWeek={unlockedWeek}
-              countdown={countdown}
-              setSelectedWeek={setSelectedWeek}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        {selectedPlans.map((plan) => (
-          <WorkoutDayCard
-            key={plan.id}
-            plan={plan}
-            exercises={getExercisesForPlan(plan, exercises)}
-          />
-        ))}
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-            <Home size={23} />
-          </div>
-
-          <h2 className="mt-4 text-xl font-black text-slate-950">
-            Alternativa em casa
-          </h2>
-
-          <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-600">
-            <p>• Agachamento livre: 3 séries de 15 repetições.</p>
-            <p>• Flexão apoiada no joelho: 3 séries de 8 a 12 repetições.</p>
-            <p>• Remada com mochila: 3 séries de 12 repetições.</p>
-            <p>• Prancha abdominal: 3 séries de 30 segundos.</p>
-            <p>• Polichinelo ou caminhada: 10 a 20 minutos.</p>
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-            <CheckCircle2 size={23} />
-          </div>
-
-          <h2 className="mt-4 text-xl font-black text-slate-950">
-            Progressão semanal
-          </h2>
-
-          <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-600">
-            <p>
-              <b>Semana 1:</b> aprenda os movimentos e controle a execução.
-            </p>
-            <p>
-              <b>Semana 2:</b> mantenha frequência e aumente levemente o ritmo.
-            </p>
-            <p>
-              <b>Semana 3:</b> aumente carga ou repetições se estiver seguro.
-            </p>
-            <p>
-              <b>Semana 4:</b> consolide disciplina e registre sua evolução.
+            <p className="mt-1 text-lg font-black text-slate-950">
+              {formatCountdown(nextUnlockDate)}
             </p>
           </div>
         </div>
