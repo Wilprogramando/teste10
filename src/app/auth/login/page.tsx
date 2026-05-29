@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
@@ -15,26 +14,37 @@ import { createClient } from '@/lib/supabaseClient';
 
 type Mode = 'signup' | 'login';
 
-function getFriendlyError(message: string) {
-  const lower = message.toLowerCase();
+function getFriendlyError(message?: string) {
+  const text = message || '';
+  const lower = text.toLowerCase();
 
   if (lower.includes('invalid login credentials')) {
-    return 'E-mail ou senha incorretos.';
+    return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
   }
 
   if (lower.includes('email not confirmed')) {
     return 'Seu e-mail ainda não foi confirmado. Para teste, desative a confirmação de e-mail no Supabase.';
   }
 
-  if (lower.includes('user already registered')) {
-    return 'Este e-mail já possui cadastro. Clique em “Já tenho conta”.';
+  if (
+    lower.includes('user already registered') ||
+    lower.includes('already registered')
+  ) {
+    return 'Este e-mail já possui cadastro. Clique em “Já tenho conta” e entre com sua senha.';
+  }
+
+  if (lower.includes('signup disabled')) {
+    return 'O cadastro está desativado no Supabase. Ative o cadastro por e-mail em Authentication.';
   }
 
   if (lower.includes('password')) {
     return 'Verifique sua senha. Ela precisa ter pelo menos 6 caracteres.';
   }
 
-  return message || 'Não foi possível concluir sua solicitação agora.';
+  return (
+    text ||
+    'Não foi possível concluir agora. Verifique e-mail, senha e configuração do Supabase.'
+  );
 }
 
 export default function AuthLoginPage() {
@@ -42,13 +52,16 @@ export default function AuthLoginPage() {
   const router = useRouter();
 
   const [mode, setMode] = useState<Mode>('signup');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [message, setMessage] = useState('');
   const [successRegistered, setSuccessRegistered] = useState(false);
+  const [hasActiveSession, setHasActiveSession] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,7 +95,7 @@ export default function AuthLoginPage() {
 
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
         });
@@ -91,8 +104,19 @@ export default function AuthLoginPage() {
           throw error;
         }
 
+        const sessionWasCreated = Boolean(data.session);
+
+        setHasActiveSession(sessionWasCreated);
         setSuccessRegistered(true);
-        setMessage('');
+
+        if (sessionWasCreated) {
+          setMessage('');
+        } else {
+          setMessage(
+            'Cadastro criado. Se o botão “Entrar e pagar” não entrar, desative a confirmação de e-mail no Supabase ou confirme o usuário manualmente.'
+          );
+        }
+
         return;
       }
 
@@ -119,8 +143,20 @@ export default function AuthLoginPage() {
     setMessage('');
 
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session || hasActiveSession) {
+        router.push('/dashboard');
+        router.refresh();
+        return;
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+
       const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
       });
 
@@ -155,8 +191,8 @@ export default function AuthLoginPage() {
 
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Entre para a <strong>Jornada Seu Ademir</strong> e tenha acesso a
-              uma experiência pensada para disciplina, treino, evolução e
-              mudança real de vida.
+              uma experiência pensada para disciplina, treino, evolução e mudança
+              real de vida.
             </p>
 
             <div className="mt-8 grid gap-4">
@@ -164,8 +200,10 @@ export default function AuthLoginPage() {
                 <p className="text-sm font-black text-slate-950">
                   Acesso ao sistema completo
                 </p>
+
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Painel com treinos, alimentação, progresso e rotina diária.
+                  Painel com treinos, alimentação, progresso, IMC e rotina
+                  diária.
                 </p>
               </div>
 
@@ -173,6 +211,7 @@ export default function AuthLoginPage() {
                 <p className="text-sm font-black text-slate-950">
                   Método simples e direto
                 </p>
+
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   Crie sua conta, entre na plataforma e comece sua jornada.
                 </p>
@@ -184,12 +223,13 @@ export default function AuthLoginPage() {
 
                   <div>
                     <p className="text-sm font-black text-emerald-800">
-                      Informação importante sobre o pagamento
+                      Pagamento no primeiro acesso
                     </p>
+
                     <p className="mt-2 text-sm leading-6 text-emerald-700">
                       O pagamento será cobrado{' '}
-                      <strong>após o seu primeiro acesso</strong>, quando você
-                      entrar com seu usuário e senha pela primeira vez.
+                      <strong>após você entrar com seu usuário e senha</strong>{' '}
+                      pela primeira vez.
                     </p>
                   </div>
                 </div>
@@ -215,7 +255,7 @@ export default function AuthLoginPage() {
 
               <p className="mt-2 text-sm leading-6 text-emerald-50">
                 {successRegistered
-                  ? 'Sua conta foi criada com sucesso. Agora você pode entrar e seguir para o primeiro acesso.'
+                  ? 'Sua conta foi criada. Agora clique em “Entrar e pagar”.'
                   : mode === 'signup'
                     ? 'Crie sua conta para começar sua jornada.'
                     : 'Entre com seu e-mail e senha para acessar sua área.'}
@@ -331,13 +371,7 @@ export default function AuthLoginPage() {
                   )}
 
                   {message && (
-                    <div
-                      className={`mt-5 rounded-2xl px-4 py-4 text-sm ${
-                        message.toLowerCase().includes('sucesso')
-                          ? 'bg-emerald-50 text-emerald-800'
-                          : 'bg-red-50 text-red-700'
-                      }`}
-                    >
+                    <div className="mt-5 rounded-2xl bg-red-50 px-4 py-4 text-sm text-red-700">
                       {message}
                     </div>
                   )}
@@ -354,18 +388,23 @@ export default function AuthLoginPage() {
                     </h3>
 
                     <p className="mt-3 text-sm leading-7 text-slate-600">
-                      Sua conta foi criada. Clique abaixo para entrar na
-                      plataforma e seguir com o primeiro acesso.
+                      Sua conta foi criada. Agora clique abaixo para entrar na
+                      plataforma.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
                     <p className="text-sm leading-6 text-amber-800">
-                      <strong>Importante:</strong> o pagamento será cobrado
-                      após você entrar com seu usuário e senha pela primeira
-                      vez.
+                      <strong>Importante:</strong> o pagamento será cobrado após
+                      você entrar com seu usuário e senha pela primeira vez.
                     </p>
                   </div>
+
+                  {message && (
+                    <div className="rounded-2xl bg-slate-100 px-4 py-4 text-sm text-slate-700">
+                      {message}
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -387,12 +426,6 @@ export default function AuthLoginPage() {
                   >
                     Já tenho conta
                   </button>
-
-                  {message && (
-                    <div className="rounded-2xl bg-red-50 px-4 py-4 text-sm text-red-700">
-                      {message}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
